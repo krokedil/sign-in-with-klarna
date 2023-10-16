@@ -71,14 +71,22 @@ if ( ! class_exists( 'SignInWithKlarna' ) ) {
 		public function __wakeup() {        }
 
 		/**
-		 * Initialize hooks.
+		 * Initialize so that SIWK can be displayed.
+		 *
+		 * Without this initialization, even if you output the button HTML to the document, it won't be displayed to the user.
 		 *
 		 * @return void
 		 */
 		public function init() {
-			if ( is_user_logged_in() ) {
+			/*
+			 * Check if we need to display the SIWK button:
+			 * 1. if logged in or guest but has not signed in with klarna.
+			 * 2. signed in, but need to renew the refresh token.
+			 */
+			if ( ! empty( get_user_meta( get_current_user_id(), self::$refresh_token_key, true ) ) ) {
 				return;
 			}
+
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 			add_action( 'script_loader_tag', array( $this, 'siwk_script_tag' ), 10, 2 );
 
@@ -135,6 +143,14 @@ if ( ! class_exists( 'SignInWithKlarna' ) ) {
 			$iss      = $refresh_token['iss'];
 			$response = wp_remote_post( "{$iss}/{$region}/lp/idp/oauth2/token", $payload );
 			if ( is_wp_error( $response ) ) {
+				$has_expired = 403;
+				$code        = $response->get_error_code();
+
+				// Delete all instances of SIWK refresh token in the user's metadata. This should ensure the SIWK button should appear again on the frontend.
+				if ( $has_expired === $code ) {
+					delete_user_meta( $user_id, self::$refresh_token_key );
+				}
+
 				return false;
 			} else {
 				$body = json_decode( wp_remote_retrieve_body( $response ), true );
@@ -236,10 +252,15 @@ if ( ! class_exists( 'SignInWithKlarna' ) ) {
 			$gateways = WC()->payment_gateways->get_available_payment_gateways();
 			foreach ( $gateways as $gateway ) {
 				if ( in_array( $gateway->id, array( 'kco', 'klarna_payments' ) ) ) {
+
+					// Set the highest ordered Klarna payment gateway.
 					WC()->session->set( 'chosen_payment_method', $gateway->id );
 					WC()->payment_gateways->set_current_gateway( $gateways->id );
+
+					break;
 				}
 			}
+
 		}
 
 		/**
