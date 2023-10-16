@@ -112,6 +112,17 @@ if ( ! class_exists( 'SIWK_AJAX' ) ) {
 				}
 			);
 
+			// If the user is already logged in, save the refresh token (to be used for klarna_access_token), and return.
+			// Otherwise, their cart will be emptied when changing account.
+			$user_id = get_current_user_id();
+			$guest   = 0;
+			if ( $guest !== $user_id ) {
+				SignInWithKlarna::set_access_token( $user_id, $jwt_access_token, $expires_in );
+				update_user_meta( $user_id, SignInWithKlarna::$refresh_token_key, $refresh_token );
+
+				wp_send_json_success( 'user already logged in' );
+			}
+
 			if ( username_exists( $userdata['user_login'] ) || email_exists( $userdata['user_email'] ) ) {
 				$user = get_user_by( 'login', $userdata['user_login'] );
 				$user = ! empty( $user ) ? $user : get_user_by( 'email', $userdata['user_email'] );
@@ -121,14 +132,14 @@ if ( ! class_exists( 'SIWK_AJAX' ) ) {
 
 				// Skip if the user is already logged in.
 				if ( get_current_user_id() === $user->ID ) {
-					wp_send_json_success( 'user already logged in' );
+					wp_send_json_success( 'user exists, already logged in' );
 				}
 
 				// Try to log the user in. The client should refresh the page.
 				SignInWithKlarna::set_current_user( $user->ID );
 				SignInWithKlarna::set_access_token( $user->ID, $jwt_access_token, $expires_in );
 
-				wp_send_json_success( 'user already exist, logging in' );
+				wp_send_json_success( 'user exists, logging in' );
 			}
 
 			$user_id = wp_insert_user( apply_filters( 'siwk_create_new_user', $userdata ) );
