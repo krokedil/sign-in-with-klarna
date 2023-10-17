@@ -1,8 +1,6 @@
 <?php
 namespace Krokedil\SignInWithKlarna;
 
-define( 'SIWK_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
-
 if ( ! class_exists( 'SignInWithKlarna' ) ) {
 	/**
 	 * Sign_In_With_Klarna class.
@@ -137,7 +135,7 @@ if ( ! class_exists( 'SignInWithKlarna' ) ) {
 			$this->logo_alignment = $args['siwk_logo_alignment'];
 
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
-			include_once '/var/www/html/wp-content/plugins/sign-in-with-klarna/src/class-siwk-ajax.php';
+			Ajax::init();
 		}
 
 		/**
@@ -397,7 +395,7 @@ if ( ! class_exists( 'SignInWithKlarna' ) ) {
 
 					// Set the highest ordered Klarna payment gateway.
 					WC()->session->set( 'chosen_payment_method', $gateway->id );
-					WC()->payment_gateways->set_current_gateway( $gateways->id );
+					WC()->payment_gateways->set_current_gateway( $gateway->id );
 
 					break;
 				}
