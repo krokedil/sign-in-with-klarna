@@ -124,6 +124,7 @@ if ( ! class_exists( 'SignInWithKlarna' ) ) {
 					'siwk_button_theme'   => 'default',
 					'siwk_button_shape'   => 'default',
 					'siwk_logo_alignment' => 'left',
+					'siwk_cart_placement' => 10,
 				)
 			);
 
@@ -153,7 +154,7 @@ if ( ! class_exists( 'SignInWithKlarna' ) ) {
 			$settings['siwk_client_id'] = array(
 				'name'        => 'siwk_client_id',
 				'title'       => __( 'Client ID', 'siwk' ),
-				'description' => __( 'The UUID you received after the Sign in with Klarna onboarding', 'siwk' ),
+				'description' => __( 'The UUID you received after the Sign in with Klarna onboarding.', 'siwk' ),
 				'type'        => 'text',
 			);
 
@@ -213,6 +214,18 @@ if ( ! class_exists( 'SignInWithKlarna' ) ) {
 					'left'   => __( 'Left', 'siwk' ),
 					'center' => __( 'Center', 'siwk' ),
 					'right'  => __( 'Right', 'siwk' ),
+				),
+			);
+
+			$settings['siwk_cart_placement'] = array(
+				'name'        => 'siwk_cart_placemeent',
+				'title'       => __( 'Cart page placement', 'siwk' ),
+				'type'        => 'select',
+				'description' => __( 'Change the placement of the "Sign in with Klarna" button on the cart page.', 'siwk' ),
+				'default'     => '10',
+				'options'     => array(
+					'10'  => __( 'Before "Proceed to checkout" button', 'siwk' ),
+					'100' => __( 'After "Proceed to checkout" button', 'siwk' ),
 				),
 			);
 
