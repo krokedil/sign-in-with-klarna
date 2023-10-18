@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Klarna Payments AJAX class
+ * SIWK AJAX class
  */
 class AJAX extends \WC_AJAX {
 	/**
@@ -27,7 +27,6 @@ class AJAX extends \WC_AJAX {
 			add_action( 'wp_ajax_woocommerce_' . $ajax_event, array( __CLASS__, $ajax_event ) );
 			if ( $nopriv ) {
 				add_action( 'wp_ajax_nopriv_woocommerce_' . $ajax_event, array( __CLASS__, $ajax_event ) );
-				// WC AJAX can be used for frontend ajax requests.
 				add_action( 'wc_ajax_' . $ajax_event, array( __CLASS__, $ajax_event ) );
 			}
 		}
