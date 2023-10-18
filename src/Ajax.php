@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Klarna Payments AJAX class
+ * SIWK AJAX class
  */
 class AJAX extends \WC_AJAX {
 	/**
