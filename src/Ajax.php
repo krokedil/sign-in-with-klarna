@@ -5,6 +5,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once 'includes/functions.php';
+
 /**
  * SIWK AJAX class
  */
@@ -27,7 +29,6 @@ class AJAX extends \WC_AJAX {
 			add_action( 'wp_ajax_woocommerce_' . $ajax_event, array( __CLASS__, $ajax_event ) );
 			if ( $nopriv ) {
 				add_action( 'wp_ajax_nopriv_woocommerce_' . $ajax_event, array( __CLASS__, $ajax_event ) );
-				// WC AJAX can be used for frontend ajax requests.
 				add_action( 'wc_ajax_' . $ajax_event, array( __CLASS__, $ajax_event ) );
 			}
 		}
@@ -53,8 +54,8 @@ class AJAX extends \WC_AJAX {
 		$jwt_access_token = sanitize_text_field( wp_unslash( $_POST['access_token'] ) );
 		$expires_in       = intval( wp_unslash( $_POST['expires_in'] ?? 299 ) );
 
-		$id_token      = SignInWithKlarna::get_jwt_payload( $jwt_id_token );
-		$refresh_token = SignInWithKlarna::get_refresh_token( $jwt_access_token, $jwt_id_token, $refresh_token );
+		$id_token      = get_jwt_payload( $jwt_id_token );
+		$refresh_token = get_refresh_token( $jwt_access_token, $jwt_id_token, $refresh_token );
 
 		$userdata = array(
 			'role'        => 'customer',
@@ -79,27 +80,27 @@ class AJAX extends \WC_AJAX {
 		);
 
 		$userdata['meta_input'] = array(
-			'billing_first_name'                 => $userdata['first_name'],
-			'billing_last_name'                  => $userdata['last_name'],
-			'billing_city'                       => $billing_address['city'],
-			'billing_state'                      => $billing_address['region'],
-			'billing_country'                    => $billing_address['country'],
-			'billing_postcode'                   => $billing_address['postal_code'],
-			'billing_address_1'                  => $billing_address['street_address'],
-			'billing_address_2'                  => $billing_address['street_address_2'],
-			'billing_phone'                      => $id_token['phone'],
-			'billing_email'                      => $userdata['user_email'],
-			'shipping_first_name'                => $userdata['first_name'],
-			'shipping_last_name'                 => $userdata['last_name'],
-			'shipping_city'                      => $billing_address['city'],
-			'shipping_country'                   => $billing_address['country'],
-			'shipping_state'                     => $billing_address['region'],
-			'shipping_postcode'                  => $billing_address['postal_code'],
-			'shipping_address_1'                 => $billing_address['street_address'],
-			'shipping_address_2'                 => $billing_address['street_address_2'],
-			'shipping_phone'                     => $id_token['phone'],
-			'shipping_email'                     => $userdata['user_email'],
-			SignInWithKlarna::$refresh_token_key => $refresh_token,
+			'billing_first_name'     => $userdata['first_name'],
+			'billing_last_name'      => $userdata['last_name'],
+			'billing_city'           => $billing_address['city'],
+			'billing_state'          => $billing_address['region'],
+			'billing_country'        => $billing_address['country'],
+			'billing_postcode'       => $billing_address['postal_code'],
+			'billing_address_1'      => $billing_address['street_address'],
+			'billing_address_2'      => $billing_address['street_address_2'],
+			'billing_phone'          => $id_token['phone'],
+			'billing_email'          => $userdata['user_email'],
+			'shipping_first_name'    => $userdata['first_name'],
+			'shipping_last_name'     => $userdata['last_name'],
+			'shipping_city'          => $billing_address['city'],
+			'shipping_country'       => $billing_address['country'],
+			'shipping_state'         => $billing_address['region'],
+			'shipping_postcode'      => $billing_address['postal_code'],
+			'shipping_address_1'     => $billing_address['street_address'],
+			'shipping_address_2'     => $billing_address['street_address_2'],
+			'shipping_phone'         => $id_token['phone'],
+			'shipping_email'         => $userdata['user_email'],
+			User::$refresh_token_key => $refresh_token,
 		);
 
 		// Remove empty fields (based on default value).
@@ -115,8 +116,8 @@ class AJAX extends \WC_AJAX {
 		$user_id = get_current_user_id();
 		$guest   = 0;
 		if ( $guest !== $user_id ) {
-			SignInWithKlarna::set_access_token( $user_id, $jwt_access_token, $expires_in );
-			update_user_meta( $user_id, SignInWithKlarna::$refresh_token_key, $refresh_token );
+			User::set_access_token( $user_id, $jwt_access_token, $expires_in );
+			update_user_meta( $user_id, User::$refresh_token_key, $refresh_token );
 
 			wp_send_json_success( 'user already logged in' );
 		}
@@ -134,8 +135,8 @@ class AJAX extends \WC_AJAX {
 			}
 
 			// Try to log the user in. The client should refresh the page.
-			SignInWithKlarna::set_current_user( $user->ID );
-			SignInWithKlarna::set_access_token( $user->ID, $jwt_access_token, $expires_in );
+			User::set_current_user( $user->ID );
+			User::set_access_token( $user->ID, $jwt_access_token, $expires_in );
 
 			wp_send_json_success( 'user exists, logging in' );
 		}
@@ -148,8 +149,8 @@ class AJAX extends \WC_AJAX {
 		do_action( 'woocommerce_created_customer', $user_id, $userdata, false );
 
 		// Try to log the user in. The page should be automatically refreshed in the client.
-		SignInWithKlarna::set_current_user( $user_id );
-		SignInWithKlarna::set_access_token( $user_id, $jwt_access_token, $expires_in );
+		User::set_current_user( $user_id );
+		User::set_access_token( $user_id, $jwt_access_token, $expires_in );
 
 		wp_send_json_success( 'user created, logging in' );
 	}
