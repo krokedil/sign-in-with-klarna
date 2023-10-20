@@ -5,8 +5,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-require_once 'includes/functions.php';
-
 /**
  * SIWK AJAX class
  */
@@ -54,8 +52,8 @@ class AJAX extends \WC_AJAX {
 		$jwt_access_token = sanitize_text_field( wp_unslash( $_POST['access_token'] ) );
 		$expires_in       = intval( wp_unslash( $_POST['expires_in'] ?? 299 ) );
 
-		$id_token      = get_jwt_payload( $jwt_id_token );
-		$refresh_token = get_refresh_token( $jwt_access_token, $jwt_id_token, $refresh_token );
+		$id_token      = JWT::get_jwt_payload( $jwt_id_token );
+		$refresh_token = JWT::get_refresh_token( $jwt_access_token, $jwt_id_token, $refresh_token );
 
 		$userdata = array(
 			'role'        => 'customer',

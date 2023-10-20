@@ -63,7 +63,7 @@ class User {
 		} else {
 			$body = json_decode( wp_remote_retrieve_body( $response ), true );
 
-			$refresh_token = get_refresh_token( $body['access_token'], $body['id_token'], $body['refresh_token'] );
+			$refresh_token = JWT::get_refresh_token( $body['access_token'], $body['id_token'], $body['refresh_token'] );
 			update_user_meta( $user_id, self::$refresh_token_key, $refresh_token );
 			return self::set_access_token( $user_id, $body['access_token'], intval( $body['expires_in'] ) ?? 299 );
 		}

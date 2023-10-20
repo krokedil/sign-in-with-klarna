@@ -51,7 +51,7 @@ class SignInWithKlarna {
 	 * @return void
 	 */
 	public function enqueue_scripts() {
-		/*
+		/**
 		 * Check if we need to display the SIWK button:
 		 * 1. if logged in or guest but has not signed in with klarna.
 		 * 2. signed in, but need to renew the refresh token.
