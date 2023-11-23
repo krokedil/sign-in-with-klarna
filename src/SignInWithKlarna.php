@@ -40,7 +40,7 @@ class SignInWithKlarna {
 		$this->settings = new Settings( $settings );
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
-		Ajax::init();
+		AJAX::init();
 	}
 
 	/**
