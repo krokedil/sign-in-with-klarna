@@ -108,14 +108,14 @@ class JWT {
 	 * @param string $jwt_access_token JWT access token.
 	 * @param string $jwt_id_token JWT id token.
 	 * @param string $refresh_token Opaque refresh token.
-	 * @return false|array Return FALSE if a refresh token could not be retrieved.
+	 * @return \WP_Error|array Return WP_Error if a refresh token could not be retrieved.
 	 */
 	public function get_refresh_token( $jwt_access_token, $jwt_id_token, $refresh_token ) {
 		$id_token     = $this->get_payload( $jwt_id_token );
 		$access_token = $this->get_payload( $jwt_access_token );
 
-		if ( is_wp_error( $id_token ) || is_wp_error( $access_token ) ) {
-			return array();
+		if ( is_wp_error( $id_token ) ) {
+			return is_wp_error( $access_token ) ? $access_token : $id_token;
 		}
 
 		return array(

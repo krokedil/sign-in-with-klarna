@@ -92,7 +92,7 @@ class User {
 		$body          = json_decode( wp_remote_retrieve_body( $response ), true );
 		$refresh_token = $this->jwt->get_refresh_token( $body['access_token'], $body['id_token'], $body['refresh_token'] );
 
-		if ( empty( $refresh_token ) ) {
+		if ( is_wp_error( $refresh_token ) ) {
 
 			// Mostly likely the merchant changed environment.
 			// Delete the user meta to ensure a new refresh token is issued next time in the new environment.

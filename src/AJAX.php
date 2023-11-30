@@ -71,7 +71,12 @@ class AJAX {
 		$id_token      = $this->jwt->get_payload( $jwt_id_token );
 		$refresh_token = $this->jwt->get_refresh_token( $jwt_access_token, $jwt_id_token, $refresh_token );
 		if ( is_wp_error( $id_token ) || is_wp_error( $refresh_token ) ) {
-			wp_send_json_error( 'could not retrieve token payload' );
+			$error_message = is_wp_error( $id_token ) ? $id_token->get_error_message() : $refresh_token->get_error_message();
+			if ( is_array( $error_message ) ) {
+				$error_message = implode( $error_message );
+			}
+
+			wp_send_json_error( 'could not retrieve token payload: ' . $error_message );
 		}
 
 		$userdata = array(
