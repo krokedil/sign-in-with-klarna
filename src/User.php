@@ -23,50 +23,85 @@ class User {
 	 */
 	public static $access_token_key = '_siwk_access_token';
 
+
+	/**
+	 * Settings.
+	 *
+	 * @var Settings $settings
+	 */
+	private $settings;
+
+	/**
+	 * JWT interface.
+	 *
+	 * @var JWT
+	 */
+	private $jwt;
+
+	/**
+	 * Class constructor.
+	 *
+	 * @param JWT      $jwt JWT.
+	 * @param Settings $settings Settings.
+	 */
+	public function __construct( $jwt, $settings ) {
+		$this->settings = $settings;
+		$this->jwt      = $jwt;
+	}
+
 	/**
 	 * Update the refresh token, and generate a new access token.
 	 *
 	 * Assumes refresh token is saved to user's metadata.
 	 *
-	 * @return bool TRUE if the access token was set, otherwise FALSE.
+	 * @return bool TRUE if a new access token was set, otherwise FALSE.
 	 */
-	public static function update_refresh_token() {
+	public function update_refresh_token() {
 		$user_id       = get_current_user_id();
 		$refresh_token = get_user_meta( $user_id, self::$refresh_token_key, true );
+
+		// We need an existing refresh token to issue a new one.
 		if ( empty( $refresh_token ) ) {
 			return false;
 		}
 
-		$payload  = array(
-			'headers' => array(
-				'Content-Type' => 'application/x-www-form-urlencoded',
-			),
-			'body'    => array(
-				'refresh_token' => $refresh_token['refresh_token'],
-				'client_id'     => $refresh_token['client_id'],
-				'grant_type'    => 'refresh_token',
-			),
-		);
-		$region   = 'eu';
+		$region   = $this->settings->region;
 		$iss      = $refresh_token['iss'];
-		$response = wp_remote_post( "{$iss}/{$region}/lp/idp/oauth2/token", $payload );
-		if ( is_wp_error( $response ) ) {
-			$has_expired = 403;
-			$code        = $response->get_error_code();
+		$response = wp_remote_post(
+			"{$iss}/{$region}/lp/idp/oauth2/token",
+			array(
+				'headers' => array(
+					'Content-Type' => 'application/x-www-form-urlencoded',
+				),
+				'body'    => array(
+					'refresh_token' => $refresh_token['refresh_token'],
+					'client_id'     => $refresh_token['client_id'],
+					'grant_type'    => 'refresh_token',
+				),
+			)
+		);
 
-			// Delete all instances of SIWK refresh token in the user's metadata. This should ensure the SIWK button should appear again on the frontend.
-			if ( $has_expired === $code ) {
-				delete_user_meta( $user_id, self::$refresh_token_key );
-			}
-
+		$code = wp_remote_retrieve_response_code( $response );
+		if ( is_wp_error( $response ) || ( $code < 200 || $code > 299 ) ) {
+			// Delete all instances of SIWK refresh token in the user's metadata.
+			// This should ensure the SIWK button should appear again on the frontend.
+			delete_user_meta( $user_id, self::$refresh_token_key );
 			return false;
-		} else {
-			$body = json_decode( wp_remote_retrieve_body( $response ), true );
-
-			$refresh_token = JWT::get_refresh_token( $body['access_token'], $body['id_token'], $body['refresh_token'] );
-			update_user_meta( $user_id, self::$refresh_token_key, $refresh_token );
-			return self::set_access_token( $user_id, $body['access_token'], intval( $body['expires_in'] ) ?? 299 );
 		}
+
+		$body          = json_decode( wp_remote_retrieve_body( $response ), true );
+		$refresh_token = $this->jwt->get_refresh_token( $body['access_token'], $body['id_token'], $body['refresh_token'] );
+
+		if ( empty( $refresh_token ) ) {
+
+			// Mostly likely the merchant changed environment.
+			// Delete the user meta to ensure a new refresh token is issued next time in the new environment.
+			delete_user_meta( $user_id, self::$refresh_token_key );
+			return false;
+		}
+
+		update_user_meta( $user_id, self::$refresh_token_key, $refresh_token );
+		return $this->set_access_token( $user_id, $body['access_token'], intval( $body['expires_in'] ) ?? 299 );
 	}
 
 	/**
@@ -75,8 +110,8 @@ class User {
 	 * @param int $user_id The user ID.
 	 * @return string|false The access token or FALSE.
 	 */
-	public static function get_access_token( $user_id ) {
-		// Guest user.
+	public function get_access_token( $user_id ) {
+		// Guest user has no access token.
 		if ( 0 === $user_id ) {
 			return false;
 		}
@@ -95,7 +130,7 @@ class User {
 		}
 
 		// Update refresh token, and fetch new access token.
-		self::update_refresh_token();
+		$this->update_refresh_token();
 		return get_transient( $access_token_key );
 	}
 
@@ -107,7 +142,7 @@ class User {
 	 * @param int    $expires_in How long the transient is valid (seconds).
 	 * @return bool TRUE if the access token was set, otherwise FALSE.
 	 */
-	public static function set_access_token( $user_id, $jwt_access_token, $expires_in ) {
+	public function set_access_token( $user_id, $jwt_access_token, $expires_in ) {
 		return set_transient( $user_id . self::$access_token_key, $jwt_access_token, $expires_in );
 	}
 
