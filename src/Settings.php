@@ -1,4 +1,4 @@
-<?php
+<?php //phpcs:ignore -- PCR-4 compliant.
 namespace Krokedil\SignInWithKlarna;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -15,35 +15,35 @@ class Settings {
 	 *
 	 * @var string
 	 */
-	private $client_id;
+	public $client_id;
 
 	/**
 	 * The market or the country where this integration is available.
 	 *
 	 * @var string
 	 */
-	private $market;
+	public $market;
 	/**
 	 * The environment to which the integration is pointing: playground or production.
 	 *
 	 * @var string 'playground' or 'production'.
 	 */
 
-	private $environment;
+	public $environment;
 
 	/**
 	 * The button's color theme.
 	 *
 	 * @var string
 	 */
-	private $button_theme;
+	public $button_theme;
 
 	/**
 	 * The button's shape.
 	 *
 	 * @var string
 	 */
-	private $button_shape;
+	public $button_shape;
 
 	/**
 	 * Change alignment of the Klarna logo on the call to action button based on the provided configuration.
@@ -56,7 +56,21 @@ class Settings {
 	 *
 	 * @var string
 	 */
-	private $logo_alignment;
+	public $logo_alignment;
+
+	/**
+	 * Change the position of the button on the cart page.
+	 *
+	 * @var int
+	 */
+	public $cart_placement;
+
+	/**
+	 * The regional endpoint (EU v. US).
+	 *
+	 * @var string
+	 */
+	public $region;
 
 	/**
 	 * Class constructor
@@ -69,6 +83,7 @@ class Settings {
 			$this->default(),
 		);
 
+		$this->update( $settings );
 	}
 
 	/**
@@ -83,7 +98,7 @@ class Settings {
 	}
 
 	/**
-	 * Update the settings.
+	 * Update all the internal settings.
 	 *
 	 * @param array $settings The settings to extract from, or pass an array to use the option (if it was set).
 	 * @return void
@@ -101,9 +116,9 @@ class Settings {
 	 * @param array $settings Your plugin settings as an array.
 	 * @return array
 	 */
-	public function add_siwk_settings( $settings ) {
+	public function extend_settings( $settings ) {
 		$settings['siwk_title'] = array(
-			'title' => __( 'Sign in with Klarna', 'siwk' ),
+			'title' => $this->default()['siwk_title'],
 			'type'  => 'title',
 		);
 
@@ -112,6 +127,7 @@ class Settings {
 			'title'       => __( 'Client ID', 'siwk' ),
 			'description' => __( 'The UUID you received after the Sign in with Klarna onboarding.', 'siwk' ),
 			'type'        => 'text',
+			'default'     => $this->default()['siwk_client_id'],
 		);
 
 		$settings['siwk_environment'] = array(
@@ -119,7 +135,7 @@ class Settings {
 			'title'       => __( 'Environment', 'siwk' ),
 			'type'        => 'select',
 			'description' => __( 'The environment to which the integration is pointing.', 'siwk' ),
-			'default'     => 'playground',
+			'default'     => $this->default()['siwk_environment'],
 			'options'     => array(
 				'playground' => __( 'Playground', 'siwk' ),
 				'production' => __( 'Production', 'siwk' ),
@@ -131,7 +147,18 @@ class Settings {
 			'title'       => __( 'Market', 'siwk' ),
 			'type'        => 'text',
 			'description' => __( 'The market or the country where this integration is available.', 'siwk' ),
-			'default'     => wc_get_base_location()['country'] ?? '',
+			'default'     => $this->default()['siwk_market'],
+		);
+
+		$settings['siwk_region'] = array(
+			'name'        => 'siwk_region',
+			'title'       => __( 'Region', 'siwk' ),
+			'type'        => 'select',
+			'description' => __( 'The regional endpoint.', 'siwk' ),
+			'default'     => $this->default()['siwk_region'],
+			'options'     => array(
+				'eu' => __( 'EU', 'siwk' ),
+			),
 		);
 
 		$settings['siwk_button_theme'] = array(
@@ -139,7 +166,7 @@ class Settings {
 			'title'       => __( 'Button theme' ),
 			'type'        => 'select',
 			'description' => __( 'The button\'s color theme.', 'siwk' ),
-			'default'     => 'default',
+			'default'     => $this->default()['siwk_button_theme'],
 			'options'     => array(
 				'default' => __( 'Default', 'siwk' ),
 				'dark'    => __( 'Dark', 'siwk' ),
@@ -152,7 +179,7 @@ class Settings {
 			'title'       => __( 'Button shape' ),
 			'type'        => 'select',
 			'description' => __( 'The button\'s shape.', 'siwk' ),
-			'default'     => 'default',
+			'default'     => $this->default()['siwk_button_shape'],
 			'options'     => array(
 				'default'   => __( 'Default', 'siwk' ),
 				'rectangle' => __( 'Rectangle', 'siwk' ),
@@ -165,7 +192,7 @@ class Settings {
 			'title'       => __( 'Logo alignment' ),
 			'type'        => 'select',
 			'description' => __( 'Change alignment of the Klarna logo on the call to action button based on the provided configuration.', 'siwk' ),
-			'default'     => 'left',
+			'default'     => $this->default()['siwk_logo_alignment'],
 			'options'     => array(
 				'left'   => __( 'Left', 'siwk' ),
 				'center' => __( 'Center', 'siwk' ),
@@ -178,7 +205,7 @@ class Settings {
 			'title'       => __( 'Cart page placement', 'siwk' ),
 			'type'        => 'select',
 			'description' => __( 'Change the placement of the "Sign in with Klarna" button on the cart page.', 'siwk' ),
-			'default'     => '10',
+			'default'     => $this->default()['siwk_cart_placement'],
 			'options'     => array(
 				'10'  => __( 'Before "Proceed to checkout" button', 'siwk' ),
 				'100' => __( 'After "Proceed to checkout" button', 'siwk' ),
@@ -197,10 +224,12 @@ class Settings {
 	private function store( $settings ) {
 		$this->client_id      = $settings['siwk_client_id'];
 		$this->market         = $settings['siwk_market'];
+		$this->region         = $settings['siwk_region'];
 		$this->environment    = $settings['siwk_environment'];
 		$this->button_theme   = $settings['siwk_button_theme'];
 		$this->button_shape   = $settings['siwk_button_shape'];
 		$this->logo_alignment = $settings['siwk_logo_alignment'];
+		$this->cart_placement = $settings['siwk_cart_placement'];
 	}
 
 	/**
@@ -210,8 +239,10 @@ class Settings {
 	 */
 	private function default() {
 		return array(
+			'siwk_title'          => __( 'Sign in with Klarna', 'siwk' ) ?? 'Sign in with Klarna',
 			'siwk_client_id'      => '',
-			'siwk_market'         => '',
+			'siwk_market'         => wc_get_base_location()['country'] ?? '',
+			'siwk_region'         => 'eu',
 			'siwk_environment'    => 'playground',
 			'siwk_button_theme'   => 'default',
 			'siwk_button_shape'   => 'default',
