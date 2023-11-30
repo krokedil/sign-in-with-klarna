@@ -1,4 +1,4 @@
-<?php
+<?php //phpcs:ignore -- PCR-4 compliant
 namespace Krokedil\SignInWithKlarna;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -8,26 +8,42 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * SIWK AJAX class
  */
-class AJAX extends \WC_AJAX {
-	/**
-	 * Hook in ajax handlers.
-	 */
-	public static function init() {
-		self::add_ajax_events();
-	}
+class AJAX {
 
 	/**
-	 * Hook in methods - uses WordPress ajax handlers (admin-ajax).
+	 * JWT interface.
+	 *
+	 * @var JWT
 	 */
-	public static function add_ajax_events() {
+	private $jwt;
+
+	/**
+	 * Handles metadata associated with a WordPress user.
+	 *
+	 * @var User
+	 */
+	private $user;
+
+	/**
+	 * Class constructor.
+	 *
+	 * The AJAX request should only be enqueued ONCE, and only ONCE.
+	 *
+	 * @param JWT  $jwt JWT instance.
+	 * @param User $user User instance.
+	 */
+	public function __construct( $jwt, $user ) {
+		$this->jwt  = $jwt;
+		$this->user = $user;
+
 		$ajax_events = array(
 			'siwk_sign_in' => true,
 		);
 		foreach ( $ajax_events as $ajax_event => $nopriv ) {
-			add_action( 'wp_ajax_woocommerce_' . $ajax_event, array( __CLASS__, $ajax_event ) );
+			add_action( 'wp_ajax_woocommerce_' . $ajax_event, array( $this, $ajax_event ) );
 			if ( $nopriv ) {
-				add_action( 'wp_ajax_nopriv_woocommerce_' . $ajax_event, array( __CLASS__, $ajax_event ) );
-				add_action( 'wc_ajax_' . $ajax_event, array( __CLASS__, $ajax_event ) );
+				add_action( 'wp_ajax_nopriv_woocommerce_' . $ajax_event, array( $this, $ajax_event ) );
+				add_action( 'wc_ajax_' . $ajax_event, array( $this, $ajax_event ) );
 			}
 		}
 	}
@@ -37,7 +53,7 @@ class AJAX extends \WC_AJAX {
 	 *
 	 * @return void
 	 */
-	public static function siwk_sign_in() {
+	public function siwk_sign_in() {
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_key( wp_unslash( $_POST['nonce'] ) ) : '';
 		if ( ! wp_verify_nonce( $nonce, 'siwk_sign_in' ) ) {
 			wp_send_json_error( 'bad_nonce' );
@@ -52,8 +68,11 @@ class AJAX extends \WC_AJAX {
 		$jwt_access_token = sanitize_text_field( wp_unslash( $_POST['access_token'] ) );
 		$expires_in       = intval( wp_unslash( $_POST['expires_in'] ?? 299 ) );
 
-		$id_token      = JWT::get_jwt_payload( $jwt_id_token );
-		$refresh_token = JWT::get_refresh_token( $jwt_access_token, $jwt_id_token, $refresh_token );
+		$id_token      = $this->jwt->get_payload( $jwt_id_token );
+		$refresh_token = $this->jwt->get_refresh_token( $jwt_access_token, $jwt_id_token, $refresh_token );
+		if ( is_wp_error( $id_token ) || is_wp_error( $refresh_token ) ) {
+			wp_send_json_error( 'could not retrieve token payload' );
+		}
 
 		$userdata = array(
 			'role'        => 'customer',
@@ -114,7 +133,7 @@ class AJAX extends \WC_AJAX {
 		$user_id = get_current_user_id();
 		$guest   = 0;
 		if ( $guest !== $user_id ) {
-			User::set_access_token( $user_id, $jwt_access_token, $expires_in );
+			$this->user->set_access_token( $user_id, $jwt_access_token, $expires_in );
 			update_user_meta( $user_id, User::$refresh_token_key, $refresh_token );
 
 			wp_send_json_success( 'user already logged in' );
@@ -133,8 +152,8 @@ class AJAX extends \WC_AJAX {
 			}
 
 			// Try to log the user in. The client should refresh the page.
-			User::set_current_user( $user->ID );
-			User::set_access_token( $user->ID, $jwt_access_token, $expires_in );
+			$this->user->set_current_user( $user->ID );
+			$this->user->set_access_token( $user->ID, $jwt_access_token, $expires_in );
 
 			wp_send_json_success( 'user exists, logging in' );
 		}
@@ -147,8 +166,8 @@ class AJAX extends \WC_AJAX {
 		do_action( 'woocommerce_created_customer', $user_id, $userdata, false );
 
 		// Try to log the user in. The page should be automatically refreshed in the client.
-		User::set_current_user( $user_id );
-		User::set_access_token( $user_id, $jwt_access_token, $expires_in );
+		$this->user->set_current_user( $user_id );
+		$this->user->set_access_token( $user_id, $jwt_access_token, $expires_in );
 
 		wp_send_json_success( 'user created, logging in' );
 	}
