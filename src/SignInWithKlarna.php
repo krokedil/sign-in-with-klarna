@@ -1,4 +1,4 @@
-<?php
+<?php //phpcs:ignore -- PCR-4 compliant.
 namespace Krokedil\SignInWithKlarna;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -22,7 +22,7 @@ class SignInWithKlarna {
 	 *
 	 * @var string
 	 */
-	public static $siwk_placement_hook = 'siwk_placement';
+	public static $placement_hook = 'siwk_placement';
 
 	/**
 	 * The internal settings state.
@@ -32,15 +32,40 @@ class SignInWithKlarna {
 	public $settings;
 
 	/**
+	 * The interface used for reading from a JWT token.
+	 *
+	 * @var JWT
+	 */
+	public $jwt;
+
+	/**
+	 * Handles AJAX requests.
+	 *
+	 * @var AJAX
+	 */
+	public $ajax;
+
+	/**
+	 * Handles metadata associated with a WordPress user.
+	 *
+	 * @var User
+	 */
+	public $user;
+
+	/**
 	 * Class constructor.
 	 *
 	 * @param array $settings The plugin settings to extract from.
 	 */
 	public function __construct( $settings ) {
 		$this->settings = new Settings( $settings );
+		$this->jwt      = new JWT( 'playground' === $this->settings->environment );
+		$this->user     = new User( $this->jwt, $this->settings );
+		$this->ajax     = new AJAX( $this->jwt, $this->user );
 
+		add_action( 'woocommerce_proceed_to_checkout', array( $this, self::$placement_hook ), intval( $this->settings->cart_placement ) );
+		add_action( 'woocommerce_login_form_end', array( $this, self::$placement_hook ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
-		AJAX::init();
 	}
 
 	/**
@@ -73,9 +98,7 @@ class SignInWithKlarna {
 		);
 		wp_localize_script( 'siwk_script', 'siwk_params', $siwk_params );
 		wp_enqueue_script( 'siwk_script' );
-
-		wp_register_script( self::$library_handle, 'https://x.klarnacdn.net/sign-in-with-klarna/v1/lib.js', array( 'siwk_script' ), '0.0.1', true );
-		wp_enqueue_script( self::$library_handle );
+		wp_enqueue_script( self::$library_handle, 'https://x.klarnacdn.net/sign-in-with-klarna/v1/lib.js', array( 'siwk_script' ), '0.0.1', true );
 
 		// Add data- attributes to the script tag.
 		add_action( 'script_loader_tag', array( $this, 'siwk_script_tag' ), 10, 2 );
@@ -113,7 +136,10 @@ class SignInWithKlarna {
 		$shape     = esc_attr( apply_filters( 'siwk_button_shape', $this->settings->get( 'button_shape' ) ) ); // default, rectangle, pill.
 		$alignment = esc_attr( apply_filters( 'siwk_logo_alignment', $this->settings->get( 'logo_alignment' ) ) ); // left, right, center.
 
-		// phpcs:ignore -- must be echoed as html; attributes escaped.
+		// phpcs:ignore -- must be echoed as html; attributes already escaped.
 		echo "<klarna-sign-in data-theme='{$theme}' data-shape='{$shape}' data-logo-alignment='{$alignment}'></klarna-sign-in>";
+
+		// Only run this function ONCE PER ACTION to prevent duplicate buttons.
+		remove_action( current_action(), array( $this, self::$placement_hook ) );
 	}
 }
