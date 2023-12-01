@@ -18,7 +18,7 @@ if (siwk_params !== undefined) {
         console.log(data)
         location.reload();
       },
-      errror: (data) => {
+      error: (data) => {
         console.log(data)
       }
     });
