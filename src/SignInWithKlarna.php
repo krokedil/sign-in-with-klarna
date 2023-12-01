@@ -5,6 +5,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+define( 'SIWK_VERSION', '0.0.1' );
+
 /**
  * Sign_In_With_Klarna class.
  */
@@ -86,11 +88,9 @@ class SignInWithKlarna {
 			return;
 		}
 
-		$path        = dirname( __FILE__ ) . '/assets/siwk.js';
-		$script_path = substr( $path, strpos( $path, '/wp-content' ) );
-
 		// 'siwk_script' MUST BE registered before Klarna's lib.js
-		wp_register_script( 'siwk_script', $script_path, array(), '0.0.1', false );
+		$script_path = plugin_dir_url( __FILE__ ) . 'assets/siwk.js';
+		wp_register_script( 'siwk_script', $script_path, array(), SIWK_VERSION, false );
 		$siwk_params = array(
 			'sign_in_url'   => \WC_AJAX::get_endpoint( 'siwk_sign_in' ),
 			'sign_in_nonce' => wp_create_nonce( 'siwk_sign_in' ),
@@ -98,7 +98,7 @@ class SignInWithKlarna {
 		);
 		wp_localize_script( 'siwk_script', 'siwk_params', $siwk_params );
 		wp_enqueue_script( 'siwk_script' );
-		wp_enqueue_script( self::$library_handle, 'https://x.klarnacdn.net/sign-in-with-klarna/v1/lib.js', array( 'siwk_script' ), '0.0.1', true );
+		wp_enqueue_script( self::$library_handle, 'https://x.klarnacdn.net/sign-in-with-klarna/v1/lib.js', array( 'siwk_script' ), SIWK_VERSION, true );
 
 		// Add data- attributes to the script tag.
 		add_action( 'script_loader_tag', array( $this, 'siwk_script_tag' ), 10, 2 );
