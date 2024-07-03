@@ -63,7 +63,7 @@ class SignInWithKlarna {
 		$this->settings = new Settings( $settings );
 		$this->jwt      = new JWT( 'playground' === $this->settings->environment );
 		$this->user     = new User( $this->jwt, $this->settings );
-		$this->ajax     = new AJAX( $this->jwt, $this->user );
+		$this->ajax     = new AJAX( $this->jwt, $this->user, $this->settings->get( 'client_id' ) );
 
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, self::$placement_hook ), intval( $this->settings->cart_placement ) );
 		add_action( 'woocommerce_login_form_end', array( $this, self::$placement_hook ) );
@@ -158,9 +158,8 @@ class SignInWithKlarna {
 		$client_id   = esc_attr( apply_filters( 'siwk_client_id', $this->settings->get( 'client_id' ) ) );
 		$market      = esc_attr( apply_filters( 'siwk_market', $this->settings->get( 'market' ) ) );
 		$environment = esc_attr( apply_filters( 'siwk_environment', 'playground' === $this->settings->get( 'environment' ) ? 'playground' : 'production' ) );
-		$scope       = esc_attr( apply_filters( 'siwk_scope', 'offline_access profile phone email billing_address' ) );
 
-		return str_replace( ' src', " defer data-locale='{$locale}' data-market='{$market}' data-environment='{$environment}' data-client-id='{$client_id}' data-scope='{$scope}' data-on-sign-in='onSignIn' data-on-error='onSignInError' src", $tag );
+		return str_replace( ' src', " defer data-locale='{$locale}' data-market='{$market}' data-environment='{$environment}' data-client-id='{$client_id}' src", $tag );
 	}
 
 	/**
@@ -173,9 +172,10 @@ class SignInWithKlarna {
 		$shape     = esc_attr( apply_filters( 'siwk_button_shape', $this->settings->get( 'button_shape' ) ) ); // default, rectangle, pill.
 		$alignment = esc_attr( apply_filters( 'siwk_logo_alignment', $this->settings->get( 'logo_alignment' ) ) ); // left, right, center.
 
-		$redirect_to = '';
+		$redirect_to = esc_attr( apply_filters( 'siwk_redirect_uri', home_url( 'siwk/callback' ) ) );
+		$scope       = esc_attr( apply_filters( 'siwk_scope', 'openid offline_access payment:request:create profile:name profile:email profile:phone profile:billing_address' ) );
 
-		$attributes = "id='klarna-identity-button' data-scope='openid offline_access payment:request:create profile:name profile:email' data-theme='{$theme}' data-shape='{$shape}' data-logo-alignment='{$alignment}' data-redirect-uri='{$redirect_to}'";
+		$attributes = "id='klarna-identity-button' data-scope='{$scope}' data-theme='{$theme}' data-shape='{$shape}' data-logo-alignment='{$alignment}' data-redirect-uri='{$redirect_to}'";
 		// phpcs:ignore -- must be echoed as html; attributes already escaped.
 		echo "<klarna-identity-button $attributes></klarna-identity-button>";
 
