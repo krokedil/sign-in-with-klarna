@@ -92,7 +92,7 @@ class AJAX {
 
 		// Clean fields, and use default values to avoid undefined index.
 		$billing_address = array_map(
-			function( $field ) {
+			function ( $field ) {
 				if ( empty( $field ) ) {
 					return '';
 				}

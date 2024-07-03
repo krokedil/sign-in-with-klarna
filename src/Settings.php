@@ -125,7 +125,7 @@ class Settings {
 		$settings['siwk_client_id'] = array(
 			'name'        => 'siwk_client_id',
 			'title'       => __( 'Client ID', 'siwk' ),
-			'description' => __( 'The UUID you received after the Sign in with Klarna onboarding.', 'siwk' ),
+			'description' => __( 'The client ID you received after the Sign in with Klarna onboarding.', 'siwk' ),
 			'type'        => 'text',
 			'default'     => $this->default()['siwk_client_id'],
 		);
@@ -249,6 +249,5 @@ class Settings {
 			'siwk_logo_alignment' => 'left',
 			'siwk_cart_placement' => 10,
 		);
-
 	}
 }

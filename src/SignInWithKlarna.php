@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SIWK_VERSION', '0.0.1' );
+define( 'SIWK_VERSION', '0.0.2' );
 
 /**
  * Sign_In_With_Klarna class.
@@ -68,8 +68,46 @@ class SignInWithKlarna {
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, self::$placement_hook ), intval( $this->settings->cart_placement ) );
 		add_action( 'woocommerce_login_form_end', array( $this, self::$placement_hook ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+
+		add_filter(
+			'pre_handle_404',
+			function ( $preempt ) {
+				return $this->is_callback() ? true : $preempt;
+			}
+		);
+
+		add_action(
+			'template_include',
+			function ( $template ) {
+				if ( ! $this->is_callback() ) {
+					return $template;
+				}
+
+				do_action( 'wp_enqueue_scripts' );
+				$siwk = $this;
+				require_once wp_normalize_path( __DIR__ . '/template/callback.php' );
+			}
+		);
 	}
 
+	/**
+	 * Determines whether the query is for the SIWK callback page.
+	 *
+	 * @return bool whether the query is for the SIWK callback page.
+	 */
+	public function is_callback() {
+		$uri = filter_input( INPUT_SERVER, 'REQUEST_URI' );
+		if ( empty( $uri ) ) {
+			return false;
+		}
+
+		$url = wp_parse_url( $uri );
+		if ( ! isset( $url['path'] ) || '/siwk/callback' !== $url['path'] ) {
+			return false;
+		}
+
+		return true;
+	}
 	/**
 	 * Enqueue scripts.
 	 *
@@ -98,7 +136,7 @@ class SignInWithKlarna {
 		);
 		wp_localize_script( 'siwk_script', 'siwk_params', $siwk_params );
 		wp_enqueue_script( 'siwk_script' );
-		wp_enqueue_script( self::$library_handle, 'https://x.klarnacdn.net/sign-in-with-klarna/v1/lib.js', array( 'siwk_script' ), SIWK_VERSION, true );
+		wp_enqueue_script( self::$library_handle, 'https://js.klarna.com/web-sdk/v1/klarna.js', array( 'siwk_script' ), SIWK_VERSION, true );
 
 		// Add data- attributes to the script tag.
 		add_action( 'script_loader_tag', array( $this, 'siwk_script_tag' ), 10, 2 );
@@ -117,13 +155,13 @@ class SignInWithKlarna {
 			return $tag;
 		}
 
-		$locale      = esc_attr( apply_filters( 'siwk_locale', get_locale() ) );
+		$locale      = esc_attr( apply_filters( 'siwk_locale', str_replace( '_', '-', get_locale() ) ) );
 		$client_id   = esc_attr( apply_filters( 'siwk_client_id', $this->settings->get( 'client_id' ) ) );
 		$market      = esc_attr( apply_filters( 'siwk_market', $this->settings->get( 'market' ) ) );
 		$environment = esc_attr( apply_filters( 'siwk_environment', 'playground' === $this->settings->get( 'environment' ) ? 'playground' : 'production' ) );
 		$scope       = esc_attr( apply_filters( 'siwk_scope', 'offline_access profile phone email billing_address' ) );
 
-		return str_replace( ' src', " data-locale='{$locale}' data-market='{$market}' data-environment='{$environment}' data-client-id='{$client_id}' data-scope='{$scope}' data-on-sign-in='onSignIn' data-on-error='onSignInError' src", $tag );
+		return str_replace( ' src', " defer data-locale='{$locale}' data-market='{$market}' data-environment='{$environment}' data-client-id='{$client_id}' data-scope='{$scope}' data-on-sign-in='onSignIn' data-on-error='onSignInError' src", $tag );
 	}
 
 	/**
@@ -136,8 +174,11 @@ class SignInWithKlarna {
 		$shape     = esc_attr( apply_filters( 'siwk_button_shape', $this->settings->get( 'button_shape' ) ) ); // default, rectangle, pill.
 		$alignment = esc_attr( apply_filters( 'siwk_logo_alignment', $this->settings->get( 'logo_alignment' ) ) ); // left, right, center.
 
+		$redirect_to = '';
+
+		$attributes = "id='klarna-identity-button' data-scope='openid offline_access payment:request:create profile:name profile:email' data-theme='{$theme}' data-shape='{$shape}' data-logo-alignment='{$alignment}' data-redirect-uri='{$redirect_to}'";
 		// phpcs:ignore -- must be echoed as html; attributes already escaped.
-		echo "<klarna-sign-in data-theme='{$theme}' data-shape='{$shape}' data-logo-alignment='{$alignment}'></klarna-sign-in>";
+		echo "<klarna-identity-button $attributes></klarna-identity-button>";
 
 		// Only run this function ONCE PER ACTION to prevent duplicate buttons.
 		remove_action( current_action(), array( $this, self::$placement_hook ) );
