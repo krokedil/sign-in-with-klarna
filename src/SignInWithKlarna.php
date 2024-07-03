@@ -84,7 +84,6 @@ class SignInWithKlarna {
 				}
 
 				do_action( 'wp_enqueue_scripts' );
-				$siwk = $this;
 				require_once wp_normalize_path( __DIR__ . '/template/callback.php' );
 			}
 		);

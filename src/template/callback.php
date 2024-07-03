@@ -3,7 +3,6 @@
 		<?php wp_head(); ?>
 	</head>
 	<body>
-		<?php $siwk->siwk_placement(); ?>
 	<!-- 
 		Notice that the head section is almost 
 		exactly the same as the index.html page.
