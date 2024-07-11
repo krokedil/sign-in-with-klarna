@@ -168,6 +168,11 @@ class SignInWithKlarna {
 	 * @return void
 	 */
 	public function siwk_placement() {
+		// Only run this function ONCE PER ACTION to prevent duplicate buttons. First time it is run, did_action will return 0. A non-zero value means it has already been run.
+		if ( did_action( self::$placement_hook ) ) {
+			return;
+		}
+
 		$theme     = esc_attr( apply_filters( 'siwk_button_theme', $this->settings->get( 'button_theme' ) ) ); // default, dark, light.
 		$shape     = esc_attr( apply_filters( 'siwk_button_shape', $this->settings->get( 'button_shape' ) ) ); // default, rectangle, pill.
 		$alignment = esc_attr( apply_filters( 'siwk_logo_alignment', $this->settings->get( 'logo_alignment' ) ) ); // left, right, center.
@@ -178,8 +183,5 @@ class SignInWithKlarna {
 		$attributes = "id='klarna-identity-button' data-scope='{$scope}' data-theme='{$theme}' data-shape='{$shape}' data-logo-alignment='{$alignment}' data-redirect-uri='{$redirect_to}'";
 		// phpcs:ignore -- must be echoed as html; attributes already escaped.
 		echo "<klarna-identity-button $attributes></klarna-identity-button>";
-
-		// Only run this function ONCE PER ACTION to prevent duplicate buttons.
-		remove_action( current_action(), array( $this, self::$placement_hook ) );
 	}
 }
