@@ -61,7 +61,7 @@ class SignInWithKlarna {
 	 */
 	public function __construct( $settings ) {
 		$this->settings = new Settings( $settings );
-		$this->jwt      = new JWT( 'playground' === $this->settings->environment );
+		$this->jwt      = new JWT( 'playground' === $this->settings->environment, $this->settings );
 		$this->user     = new User( $this->jwt, $this->settings );
 		$this->ajax     = new AJAX( $this->jwt, $this->user, $this->settings->get( 'client_id' ) );
 
@@ -120,7 +120,7 @@ class SignInWithKlarna {
 		 * 1. if logged in or guest but has not signed in with klarna.
 		 * 2. signed in, but need to renew the refresh token.
 		 */
-		$show_button = empty( get_user_meta( get_current_user_id(), User::$refresh_token_key, true ) );
+		$show_button = empty( get_user_meta( get_current_user_id(), User::REFRESH_TOKEN_KEY, true ) );
 		if ( ! $show_button ) {
 			return;
 		}
