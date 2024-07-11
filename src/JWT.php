@@ -48,7 +48,7 @@ class JWT {
 	 */
 	public function __construct( $test_mode, $settings ) {
 		$this->base_url = 'https://' . ( $test_mode ? 'login.playground.klarna.com' : 'login.klarna.com' );
-		$this->jwks_url = $this->base_url . '/eu/lp/idp/.well-known/jwks.json';
+		$this->jwks_url = "{$this->base_url}/{$settings->region}/lp/idp/.well-known/jwks.json";
 		$this->settings = $settings;
 	}
 
@@ -121,9 +121,8 @@ class JWT {
 		}
 
 		// We retrieve the client ID from the settings. This should ensure that a refresh token is only used for the correct client.
-		$region   = $this->settings->region;
 		$response = wp_remote_post(
-			"{$this->base_url}/{$region}/lp/idp/oauth2/token",
+			"{$this->base_url}/{$this->settings->region}/lp/idp/oauth2/token",
 			array(
 				'headers' => array(
 					'Content-Type' => 'application/x-www-form-urlencoded',

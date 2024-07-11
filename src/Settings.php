@@ -66,7 +66,7 @@ class Settings {
 	public $cart_placement;
 
 	/**
-	 * The regional endpoint (EU v. US).
+	 * The regional endpoint (EU v. NA).
 	 *
 	 * @var string
 	 */
@@ -158,6 +158,7 @@ class Settings {
 			'default'     => $this->default()['siwk_region'],
 			'options'     => array(
 				'eu' => __( 'EU', 'siwk' ),
+				'na' => __( 'NA', 'siwk' ),
 			),
 		);
 
