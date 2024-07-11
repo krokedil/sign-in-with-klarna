@@ -62,8 +62,8 @@ class SignInWithKlarna {
 	public function __construct( $settings ) {
 		$this->settings = new Settings( $settings );
 		$this->jwt      = new JWT( 'playground' === $this->settings->environment, $this->settings );
-		$this->user     = new User( $this->jwt, $this->settings );
-		$this->ajax     = new AJAX( $this->jwt, $this->user, $this->settings->get( 'client_id' ) );
+		$this->user     = new User( $this->jwt );
+		$this->ajax     = new AJAX( $this->jwt, $this->user );
 
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, self::$placement_hook ), intval( $this->settings->cart_placement ) );
 		add_action( 'woocommerce_login_form_end', array( $this, self::$placement_hook ) );
