@@ -1,6 +1,8 @@
 <?php
 namespace Krokedil\SignInWithKlarna;
 
+use WP_Error;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -134,5 +136,131 @@ class User {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Save tokens and refresh token to the user's metadata to an already logged in user.
+	 *
+	 * @param int    $user_id The user ID.
+	 * @param array  $tokens The Klarna tokens.
+	 * @param string $refresh_token The refresh token.
+	 * @return void
+	 */
+	public function sign_in_user( $user_id, $tokens, $refresh_token ) {
+		$this->set_tokens( $user_id, $tokens );
+		$this->set_refresh_token( $user_id, $refresh_token );
+		$this->set_current_user( $user_id );
+	}
+
+	/**
+	 * Merge user data with an existing user (identified by email). Assumes the user is not already signed in.
+	 *
+	 * @param array $userdata The user data from Klarna.
+	 * @return int|WP_Error The user's ID if was successfully merged, WP_Error otherwise.
+	 */
+	public function merge_with_existing_user( $userdata ) {
+		$user = get_user_by( 'login', $userdata['user_login'] );
+		$user = ! empty( $user ) ? $user : get_user_by( 'email', $userdata['user_email'] );
+		if ( empty( $user ) ) {
+			return new WP_Error( 'user_exists', 'failed to retrieve user data' );
+		}
+
+		// Merge the user data with the existing user.
+		$did_merge = wp_update_user( $userdata );
+		if ( is_wp_error( $did_merge ) ) {
+			return $did_merge;
+		}
+
+		do_action( 'siwk_existing_user_logged_in', $user->ID, $userdata );
+		return $user->ID;
+	}
+
+	/**
+	 * Register a new customer and log them in. Assumes the user is not already signed in.
+	 *
+	 * @param array $userdata The user data from Klarna.
+	 * @return int|WP_Error The new user's ID or WP_Error.
+	 */
+	public function register_new_user( $userdata ) {
+		$user_id = wp_insert_user( $userdata );
+		if ( is_wp_error( $user_id ) ) {
+			return new WP_Error( 'register_new_user', 'could not create user' );
+		}
+
+		do_action( 'woocommerce_created_customer', $user_id, $userdata, false );
+		return $user_id;
+	}
+
+	/**
+	 * Extract the user data from the ID token.
+	 *
+	 * @param string $id_token The ID token.
+	 * @param string $refresh_token The refresh token.
+	 * @return array An userdata array to be consumed by wp_insert_user.
+	 */
+	public function get_user_data( $id_token, $refresh_token ) {
+		// The following fields are optional, and must have a default value.
+		$id_token = wp_parse_args(
+			$id_token,
+			array(
+				'locale' => str_replace( '-', '_', get_locale() ),
+			)
+		);
+
+		$userdata = array(
+			'role'        => 'customer',
+			'user_login'  => sanitize_user( $id_token['email'] ),
+			'user_pass'   => wp_generate_password(),
+			'user_email'  => sanitize_email( $id_token['email'] ),
+			'first_name'  => sanitize_text_field( $id_token['given_name'] ),
+			'last_name'   => sanitize_text_field( $id_token['family_name'] ),
+			'description' => __( 'Sign in with Klarna', 'siwk' ),
+			'locale'      => $id_token['locale'],
+		);
+
+		// Clean fields, and use default values to avoid undefined index.
+		$billing_address = array_map(
+			function ( $field ) {
+				if ( empty( $field ) ) {
+					return '';
+				}
+				return wc_clean( $field );
+			},
+			$id_token['billing_address']
+		);
+
+		$userdata['meta_input'] = array(
+			'billing_first_name'    => $userdata['first_name'],
+			'billing_last_name'     => $userdata['last_name'],
+			'billing_city'          => $billing_address['city'],
+			'billing_state'         => $billing_address['region'],
+			'billing_country'       => $billing_address['country'],
+			'billing_postcode'      => $billing_address['postal_code'],
+			'billing_address_1'     => $billing_address['street_address'],
+			'billing_address_2'     => $billing_address['street_address_2'],
+			'billing_phone'         => $id_token['phone'],
+			'billing_email'         => $userdata['user_email'],
+			'shipping_first_name'   => $userdata['first_name'],
+			'shipping_last_name'    => $userdata['last_name'],
+			'shipping_city'         => $billing_address['city'],
+			'shipping_country'      => $billing_address['country'],
+			'shipping_state'        => $billing_address['region'],
+			'shipping_postcode'     => $billing_address['postal_code'],
+			'shipping_address_1'    => $billing_address['street_address'],
+			'shipping_address_2'    => $billing_address['street_address_2'],
+			'shipping_phone'        => $id_token['phone'],
+			'shipping_email'        => $userdata['user_email'],
+			self::REFRESH_TOKEN_KEY => $refresh_token,
+		);
+
+		// Remove empty fields (based on default value).
+		$userdata['meta_input'] = array_filter(
+			$userdata['meta_input'],
+			function ( $field ) {
+				return ! empty( $field );
+			}
+		);
+
+		return apply_filters( 'siwk_userdata', $userdata );
 	}
 }
