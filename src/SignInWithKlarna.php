@@ -12,6 +12,9 @@ define( 'SIWK_VERSION', '0.0.2' );
  */
 class SignInWithKlarna {
 
+	public const REST_API_NAMESPACE     = 'siwk/v1';
+	public const REST_API_CALLBACK_PATH = '/callback';
+
 	/**
 	 * The handle name for the JavaScript library.
 	 *
@@ -69,44 +72,21 @@ class SignInWithKlarna {
 		add_action( 'woocommerce_login_form_end', array( $this, self::$placement_hook ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 
-		add_filter(
-			'pre_handle_404',
-			function ( $preempt ) {
-				return $this->is_callback() ? true : $preempt;
-			}
-		);
-
 		add_action(
-			'template_include',
-			function ( $template ) {
-				if ( ! $this->is_callback() ) {
-					return $template;
-				}
-
-				do_action( 'wp_enqueue_scripts' );
-				require_once wp_normalize_path( __DIR__ . '/template/callback.php' );
+			'rest_api_init',
+			function () {
+				register_rest_route(
+					self::REST_API_NAMESPACE,
+					self::REST_API_CALLBACK_PATH,
+					array(
+						'methods'  => 'GET',
+						'callback' => array( $this->ajax, 'siwk_sign_in' ),
+					)
+				);
 			}
 		);
 	}
 
-	/**
-	 * Determines whether the query is for the SIWK callback page.
-	 *
-	 * @return bool whether the query is for the SIWK callback page.
-	 */
-	public function is_callback() {
-		$uri = filter_input( INPUT_SERVER, 'REQUEST_URI' );
-		if ( empty( $uri ) ) {
-			return false;
-		}
-
-		$url = wp_parse_url( $uri );
-		if ( ! isset( $url['path'] ) || '/siwk/callback' !== $url['path'] ) {
-			return false;
-		}
-
-		return true;
-	}
 	/**
 	 * Enqueue scripts.
 	 *
@@ -177,7 +157,14 @@ class SignInWithKlarna {
 		$shape     = esc_attr( apply_filters( 'siwk_button_shape', $this->settings->get( 'button_shape' ) ) ); // default, rectangle, pill.
 		$alignment = esc_attr( apply_filters( 'siwk_logo_alignment', $this->settings->get( 'logo_alignment' ) ) ); // left, right, center.
 
-		$redirect_to = esc_attr( apply_filters( 'siwk_redirect_uri', home_url( 'siwk/callback' ) ) );
+		// On sites without pretty permalinks, the route is instead added to the URL as the rest_route parameter. Compatible with pretty permalinks too.
+		$endpoint     = self::REST_API_NAMESPACE . self::REST_API_CALLBACK_PATH;
+		$callback_url = home_url( "wp-json/{$endpoint}" );
+		if ( empty( get_option( 'permalink_structure' ) ) ) {
+			$callback_url = add_query_arg( 'rest_route', "/{$endpoint}", home_url() );
+		}
+
+		$redirect_to = esc_attr( apply_filters( 'siwk_redirect_uri', $callback_url ) );
 		$scope       = esc_attr( apply_filters( 'siwk_scope', 'openid offline_access payment:request:create profile:name profile:email profile:phone profile:billing_address' ) );
 
 		$attributes = "id='klarna-identity-button' data-scope='{$scope}' data-theme='{$theme}' data-shape='{$shape}' data-logo-alignment='{$alignment}' data-redirect-uri='{$redirect_to}'";
