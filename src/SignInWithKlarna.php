@@ -157,17 +157,15 @@ class SignInWithKlarna {
 		$shape     = esc_attr( apply_filters( 'siwk_button_shape', $this->settings->get( 'button_shape' ) ) ); // default, rectangle, pill.
 		$alignment = esc_attr( apply_filters( 'siwk_logo_alignment', $this->settings->get( 'logo_alignment' ) ) ); // left, right, center.
 
-		// On sites without pretty permalinks, the route is instead added to the URL as the rest_route parameter. Compatible with pretty permalinks too.
+		// Woo requires pretty permalinks, therefore, we can don't have to fallback to the rest_route parameter.
 		$endpoint     = self::REST_API_NAMESPACE . self::REST_API_CALLBACK_PATH;
 		$callback_url = home_url( "wp-json/{$endpoint}" );
-		if ( empty( get_option( 'permalink_structure' ) ) ) {
-			$callback_url = add_query_arg( 'rest_route', "/{$endpoint}", home_url() );
-		}
 
 		$redirect_to = esc_attr( apply_filters( 'siwk_redirect_uri', $callback_url ) );
 		$scope       = esc_attr( apply_filters( 'siwk_scope', 'openid offline_access payment:request:create profile:name profile:email profile:phone profile:billing_address' ) );
 
 		$attributes = "id='klarna-identity-button' data-scope='{$scope}' data-theme='{$theme}' data-shape='{$shape}' data-logo-alignment='{$alignment}' data-redirect-uri='{$redirect_to}'";
+
 		// phpcs:ignore -- must be echoed as html; attributes already escaped.
 		echo "<klarna-identity-button $attributes></klarna-identity-button>";
 	}
