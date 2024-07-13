@@ -134,7 +134,7 @@ class SignInWithKlarna {
 			return $tag;
 		}
 
-		$locale      = esc_attr( apply_filters( 'siwk_locale', str_replace( '_', '-', get_locale() ) ) );
+		$locale      = esc_attr( $this->settings->locale );
 		$client_id   = esc_attr( apply_filters( 'siwk_client_id', $this->settings->get( 'client_id' ) ) );
 		$market      = esc_attr( apply_filters( 'siwk_market', $this->settings->get( 'market' ) ) );
 		$environment = esc_attr( apply_filters( 'siwk_environment', 'playground' === $this->settings->get( 'environment' ) ? 'playground' : 'production' ) );

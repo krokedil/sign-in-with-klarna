@@ -73,6 +73,13 @@ class Settings {
 	public $region;
 
 	/**
+	 * Internal settings.
+	 *
+	 * @var array
+	 */
+	private $internal;
+
+	/**
 	 * Class constructor
 	 *
 	 * @param array $settings The settings to extract from.
@@ -84,6 +91,9 @@ class Settings {
 		);
 
 		$this->update( $settings );
+		$this->internal = array(
+			'locale' => apply_filters( 'siwk_locale', str_replace( '_', '-', get_locale() ) ),
+		);
 	}
 
 	/**
@@ -95,6 +105,16 @@ class Settings {
 	public function get( $setting ) {
 		$setting = str_replace( 'siwk_', '', $setting );
 		return $this->$setting;
+	}
+
+	/**
+	 * Intended for retrieving internal settings.
+	 *
+	 * @param string $name The name of the setting.
+	 * @return mixed|null The setting value or NULL if not found.
+	 */
+	public function __get( $name ) {
+		return $this->internal[ $name ] ?? null;
 	}
 
 	/**
