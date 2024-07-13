@@ -90,12 +90,18 @@ class User {
 	/**
 	 * Store the Klarna tokens retrieved from the "refresh token" request to the user's metadata.
 	 *
-	 * @param int   $user_id The Woo user ID.
-	 * @param array $tokens Klarna tokens.
+	 * @param int    $user_id The Woo user ID.
+	 * @param array  $tokens Klarna tokens.
+	 * @param string $refresh_token The refresh token (optional).
 	 * @return bool Whether the tokens were saved.
 	 */
-	public function set_tokens( $user_id, $tokens ) {
-		return update_user_meta( $user_id, self::TOKENS_KEY, wp_json_encode( $tokens ) );
+	public function set_tokens( $user_id, $tokens, $refresh_token = null ) {
+		$result = update_user_meta( $user_id, self::TOKENS_KEY, wp_json_encode( $tokens ) );
+		if ( ! empty( $refresh_token ) ) {
+			$result = $this->set_refresh_token( $user_id, $refresh_token );
+		}
+
+		return $result;
 	}
 
 	/**
@@ -147,8 +153,7 @@ class User {
 	 * @return void
 	 */
 	public function sign_in_user( $user_id, $tokens, $refresh_token ) {
-		$this->set_tokens( $user_id, $tokens );
-		$this->set_refresh_token( $user_id, $refresh_token );
+		$this->set_tokens( $user_id, $tokens, $refresh_token );
 		$this->set_current_user( $user_id );
 	}
 
@@ -165,14 +170,16 @@ class User {
 			return new WP_Error( 'user_exists', 'failed to retrieve user data' );
 		}
 
-		// Merge the user data with the existing user.
-		$did_merge = wp_update_user( $userdata );
-		if ( is_wp_error( $did_merge ) ) {
-			return $did_merge;
+		// Add the retrieved user ID to the userdata so that Woo knows which user to update.
+		$userdata['ID'] = $user->ID;
+
+		$user_id = wp_update_user( $userdata );
+		if ( is_wp_error( $user_id ) ) {
+			return $user_id;
 		}
 
-		do_action( 'siwk_existing_user_logged_in', $user->ID, $userdata );
-		return $user->ID;
+		do_action( 'siwk_merge_with_existing_user', $user_id, $userdata );
+		return $user_id;
 	}
 
 	/**
