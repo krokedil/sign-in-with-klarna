@@ -202,8 +202,8 @@ class Settings {
 			'description' => __( 'The button\'s shape.', 'siwk' ),
 			'default'     => $this->default()['siwk_button_shape'],
 			'options'     => array(
-				'default'   => __( 'Default', 'siwk' ),
-				'rectangle' => __( 'Rectangle', 'siwk' ),
+				'rounded'   => __( 'Rounded', 'siwk' ),
+				'rectangle' => __( 'Rectangular', 'siwk' ),
 				'pill'      => __( 'Pill', 'siwk' ),
 			),
 		);
@@ -266,7 +266,7 @@ class Settings {
 			'siwk_region'         => 'eu',
 			'siwk_environment'    => 'playground',
 			'siwk_button_theme'   => 'default',
-			'siwk_button_shape'   => 'default',
+			'siwk_button_shape'   => 'rounded',
 			'siwk_logo_alignment' => 'left',
 			'siwk_cart_placement' => 10,
 		);
