@@ -113,7 +113,7 @@ class SignInWithKlarna {
 			$body = str_replace( '%locale%', $locale, $body );
 
 			// Show a link back to the account page in case the sign in fails.
-			$body = str_replace( '%error_url%', $account_page, $body );
+			$body = str_replace( '%store_url%', $account_page, $body );
 
 			// The AJAX URL.
 			$body = str_replace( '%sign_in_url%', \WC_AJAX::get_endpoint( 'siwk_sign_in_from_redirect' ), $body );

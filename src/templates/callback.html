@@ -30,7 +30,7 @@
             .then((data) => {
               if (data.success) {
                 // FIXME: Redirect the user to the page they were on before signing in.
-                location.reload();
+                location.href = '%store_url%'
               } else {
                 console.warn("siwk sign-in failed", data);
               }
@@ -40,6 +40,6 @@
     </script>
   </head>
   <body>
-    <p><a href="%error_url%">Back to the store</a></p>
+    <p><a href="%store_url%">Back to the store</a></p>
   </body>
 </html>

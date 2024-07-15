@@ -10,7 +10,7 @@ if (siwk_params !== undefined) {
         data: {
           id_token,
           refresh_token,
-          action: 'siwk_login',
+          action: 'siwk_sign_in_from_popout',
           nonce: siwk_params.sign_in_from_popout_nonce
         },
         success: data => {
