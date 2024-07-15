@@ -189,9 +189,9 @@ class Settings {
 			'description' => __( 'The button\'s color theme.', 'siwk' ),
 			'default'     => $this->default()['siwk_button_theme'],
 			'options'     => array(
-				'default' => __( 'Default', 'siwk' ),
-				'dark'    => __( 'Dark', 'siwk' ),
-				'light'   => __( 'Light', 'siwk' ),
+				'default'  => __( 'Default', 'siwk' ),
+				'light'    => __( 'Light', 'siwk' ),
+				'outlined' => __( 'Outlined', 'siwk' ),
 			),
 		);
 
