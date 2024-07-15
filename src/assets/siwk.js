@@ -6,12 +6,11 @@ if (siwk_params !== undefined) {
 
       jQuery.ajax({
         type: 'POST',
-        url: siwk_params.sign_in_from_popout_url,
+        url: siwk_params.sign_in_from_popup_url,
         data: {
           id_token,
           refresh_token,
-          action: 'siwk_sign_in_from_popout',
-          nonce: siwk_params.sign_in_from_popout_nonce
+          nonce: siwk_params.sign_in_from_popup_nonce
         },
         success: data => {
           if (data.success) {
@@ -27,7 +26,6 @@ if (siwk_params !== undefined) {
       })
     });
 
-    // 2. Listen for `error` event to handle error object
     klarna.Identity.on("error", async (error) => {
       console.warn('siwk error', error);
     });

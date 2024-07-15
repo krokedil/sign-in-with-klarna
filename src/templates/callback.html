@@ -19,7 +19,6 @@
           const formData = new FormData();
           formData.append("id_token", id_token);
           formData.append("refresh_token", refresh_token);
-          formData.append("action", "siwk_sign_in_from_redirect");
 
           fetch("%sign_in_url%", {
             method: "POST",
@@ -29,7 +28,6 @@
             .then((response) => response.json())
             .then((data) => {
               if (data.success) {
-                // FIXME: Redirect the user to the page they were on before signing in.
                 location.href = '%store_url%'
               } else {
                 console.warn("siwk sign-in failed", data);

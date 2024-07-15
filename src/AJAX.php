@@ -113,9 +113,9 @@ class AJAX {
 	 *
 	 * @return void A WP JSON response.
 	 */
-	public function siwk_sign_in_from_popout() {
+	public function siwk_sign_in_from_popup() {
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_key( wp_unslash( $_POST['nonce'] ) ) : '';
-		if ( ! wp_verify_nonce( $nonce, 'siwk_sign_in_from_popout' ) ) {
+		if ( ! wp_verify_nonce( $nonce, 'siwk_sign_in_from_popup' ) ) {
 			wp_send_json_error( 'bad_nonce' );
 		}
 

@@ -147,8 +147,8 @@ class SignInWithKlarna {
 		$script_path = plugin_dir_url( __FILE__ ) . 'assets/siwk.js';
 		wp_register_script( 'siwk_script', $script_path, array(), SIWK_VERSION, false );
 		$siwk_params = array(
-			'sign_in_from_popout_url'   => \WC_AJAX::get_endpoint( 'siwk_sign_in_from_popout' ),
-			'sign_in_from_popout_nonce' => wp_create_nonce( 'siwk_sign_in_from_popout' ),
+			'sign_in_from_popup_url'   => \WC_AJAX::get_endpoint( 'siwk_sign_in_from_popup' ),
+			'sign_in_from_popup_nonce' => wp_create_nonce( 'siwk_sign_in_from_popup' ),
 
 		);
 		wp_localize_script( 'siwk_script', 'siwk_params', $siwk_params );
