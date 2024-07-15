@@ -100,7 +100,7 @@ class SignInWithKlarna {
 		$response = wp_remote_get( plugin_dir_url( __FILE__ ) . 'templates/callback.html' );
 		$body     = wp_remote_retrieve_body( $response );
 
-		$account_page = get_permalink( wc_get_page_id( 'myaccount' ) );
+		$account_page = get_permalink( wc_get_page_id( 'shop' ) );
 		if ( empty( $body ) ) {
 			wp_safe_redirect( $account_page );
 		} else {
