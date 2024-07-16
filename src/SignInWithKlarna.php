@@ -64,7 +64,7 @@ class SignInWithKlarna {
 	 */
 	public function __construct( $settings ) {
 		$this->settings = new Settings( $settings );
-		$this->jwt      = new JWT( 'playground' === $this->settings->environment, $this->settings );
+		$this->jwt      = new JWT( wc_string_to_bool( $this->settings->test_mode ), $this->settings );
 		$this->user     = new User( $this->jwt );
 		$this->ajax     = new AJAX( $this->jwt, $this->user );
 
@@ -175,7 +175,7 @@ class SignInWithKlarna {
 		$locale      = esc_attr( $this->settings->locale );
 		$client_id   = esc_attr( apply_filters( 'siwk_client_id', $this->settings->get( 'client_id' ) ) );
 		$market      = esc_attr( apply_filters( 'siwk_market', $this->settings->get( 'market' ) ) );
-		$environment = esc_attr( apply_filters( 'siwk_environment', 'playground' === $this->settings->get( 'environment' ) ? 'playground' : 'production' ) );
+		$environment = esc_attr( apply_filters( 'siwk_environment', wc_string_to_bool( $this->settings->get( 'test_mode' ) ) ? 'playground' : 'production' ) );
 
 		return str_replace( ' src', " defer data-locale='{$locale}' data-market='{$market}' data-environment='{$environment}' data-client-id='{$client_id}' src", $tag );
 	}

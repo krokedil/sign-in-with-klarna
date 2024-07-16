@@ -26,10 +26,10 @@ class Settings {
 	/**
 	 * The environment to which the integration is pointing: playground or production.
 	 *
-	 * @var string 'playground' or 'production'.
+	 * @var string 'yes' or 'no'.
 	 */
 
-	public $environment;
+	public $test_mode;
 
 	/**
 	 * The button's color theme.
@@ -150,16 +150,13 @@ class Settings {
 			'default'     => $this->default()['siwk_client_id'],
 		);
 
-		$settings['siwk_environment'] = array(
-			'name'        => 'siwk_environment',
-			'title'       => __( 'Environment', 'siwk' ),
-			'type'        => 'select',
-			'description' => __( 'The environment to which the integration is pointing.', 'siwk' ),
-			'default'     => $this->default()['siwk_environment'],
-			'options'     => array(
-				'playground' => __( 'Playground', 'siwk' ),
-				'production' => __( 'Production', 'siwk' ),
-			),
+		$settings['siwk_test_mode'] = array(
+			'name'        => 'siwk_test_mode',
+			'title'       => __( 'Test mode', 'siwk' ),
+			'type'        => 'checkbox',
+			'label'       => __( 'Enable test mode', 'siwk' ),
+			'description' => __( 'In test mode, customer data for a test user will be used. If the user does not already exist, a new user will be created using the test data.', 'siwk' ),
+			'default'     => $this->default()['siwk_test_mode'],
 		);
 
 		$settings['siwk_market'] = array(
@@ -246,7 +243,7 @@ class Settings {
 		$this->client_id      = $settings['siwk_client_id'];
 		$this->market         = $settings['siwk_market'];
 		$this->region         = $settings['siwk_region'];
-		$this->environment    = $settings['siwk_environment'];
+		$this->test_mode      = $settings['siwk_test_mode'];
 		$this->button_theme   = $settings['siwk_button_theme'];
 		$this->button_shape   = $settings['siwk_button_shape'];
 		$this->logo_alignment = $settings['siwk_logo_alignment'];
@@ -264,7 +261,7 @@ class Settings {
 			'siwk_client_id'      => '',
 			'siwk_market'         => wc_get_base_location()['country'] ?? '',
 			'siwk_region'         => 'eu',
-			'siwk_environment'    => 'playground',
+			'siwk_test_mode'      => 'no',
 			'siwk_button_theme'   => 'default',
 			'siwk_button_shape'   => 'rounded',
 			'siwk_logo_alignment' => 'left',

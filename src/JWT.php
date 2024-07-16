@@ -47,7 +47,8 @@ class JWT {
 	 * @param Settings $settings Settings.
 	 */
 	public function __construct( $test_mode, $settings ) {
-		$this->base_url = 'https://' . ( $test_mode ? 'login.playground.klarna.com' : 'login.klarna.com' );
+		$environment    = $test_mode ? 'playground.' : '';
+		$this->base_url = "https://login.{$environment}klarna.com";
 		$this->jwks_url = "{$this->base_url}/{$settings->region}/lp/idp/.well-known/jwks.json";
 		$this->settings = $settings;
 	}
