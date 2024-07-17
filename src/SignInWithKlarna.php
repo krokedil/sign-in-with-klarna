@@ -191,9 +191,9 @@ class SignInWithKlarna {
 			return;
 		}
 
-		$theme     = esc_attr( apply_filters( 'siwk_button_theme', $this->settings->get( 'button_theme' ) ) ); // default, dark, light.
-		$shape     = esc_attr( apply_filters( 'siwk_button_shape', $this->settings->get( 'button_shape' ) ) ); // default, rectangle, pill.
-		$alignment = esc_attr( apply_filters( 'siwk_logo_alignment', $this->settings->get( 'logo_alignment' ) ) ); // left, right, center.
+		$theme     = esc_attr( apply_filters( 'siwk_button_theme', $this->settings->get( 'button_theme' ) ) ); // default (dark), light, outlined.
+		$shape     = esc_attr( apply_filters( 'siwk_button_shape', $this->settings->get( 'button_shape' ) ) ); // default (rounded), rectangle, pill.
+		$alignment = esc_attr( apply_filters( 'siwk_logo_alignment', $this->settings->get( 'badge_alignment' ) ) ); // badge, right, center.
 
 		// Woo requires pretty permalinks, therefore, we can don't have to fallback to the rest_route parameter.
 		$endpoint     = self::REST_API_NAMESPACE . self::REST_API_CALLBACK_PATH;

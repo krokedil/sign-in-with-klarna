@@ -52,7 +52,7 @@ class Settings {
 	 */
 
 	/**
-	 * Change alignment of the Klarna logo on the call to action button based on the provided configuration.
+	 * Change alignment of the Klarna badge on the call to action button based on the provided configuration.
 	 *
 	 * @var string
 	 */
@@ -186,7 +186,7 @@ class Settings {
 			'description' => __( 'The button\'s color theme.', 'siwk' ),
 			'default'     => $this->default()['siwk_button_theme'],
 			'options'     => array(
-				'default'  => __( 'Default', 'siwk' ),
+				'default'  => __( 'Dark', 'siwk' ),
 				'light'    => __( 'Light', 'siwk' ),
 				'outlined' => __( 'Outlined', 'siwk' ),
 			),
@@ -207,19 +207,19 @@ class Settings {
 
 		$settings['siwk_logo_alignment'] = array(
 			'name'        => 'siwk_logo_alignment',
-			'title'       => __( 'Logo alignment' ),
+			'title'       => __( 'Badge alignment' ),
 			'type'        => 'select',
 			'description' => __( 'Change alignment of the Klarna logo on the call to action button based on the provided configuration.', 'siwk' ),
 			'default'     => $this->default()['siwk_logo_alignment'],
 			'options'     => array(
-				'left'   => __( 'Left', 'siwk' ),
-				'center' => __( 'Center', 'siwk' ),
-				'right'  => __( 'Right', 'siwk' ),
+				'default' => __( 'Badge', 'siwk' ),
+				'left'    => __( 'Left', 'siwk' ),
+				'center'  => __( 'Centered', 'siwk' ),
 			),
 		);
 
 		$settings['siwk_cart_placement'] = array(
-			'name'        => 'siwk_cart_placemeent',
+			'name'        => 'siwk_cart_placement',
 			'title'       => __( 'Cart page placement', 'siwk' ),
 			'type'        => 'select',
 			'description' => __( 'Change the placement of the "Sign in with Klarna" button on the cart page.', 'siwk' ),
@@ -264,7 +264,7 @@ class Settings {
 			'siwk_test_mode'      => 'no',
 			'siwk_button_theme'   => 'default',
 			'siwk_button_shape'   => 'rounded',
-			'siwk_logo_alignment' => 'left',
+			'siwk_logo_alignment' => 'default',
 			'siwk_cart_placement' => 10,
 		);
 	}
