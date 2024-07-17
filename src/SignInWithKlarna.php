@@ -100,9 +100,9 @@ class SignInWithKlarna {
 		$response = wp_remote_get( plugin_dir_url( __FILE__ ) . 'templates/callback.html' );
 		$body     = wp_remote_retrieve_body( $response );
 
-		$account_page = get_permalink( wc_get_page_id( 'shop' ) );
+		$redirect_url = apply_filters( 'siwk_redirect_url', get_permalink( wc_get_page_id( 'shop' ) ) );
 		if ( empty( $body ) ) {
-			wp_safe_redirect( $account_page );
+			wp_safe_redirect( $redirect_url );
 		} else {
 			header( 'Content-Type: text/html' );
 			$client_id = $this->settings->get( 'client_id' );
@@ -113,7 +113,7 @@ class SignInWithKlarna {
 			$body = str_replace( '%locale%', $locale, $body );
 
 			// Show a link back to the account page in case the sign in fails.
-			$body = str_replace( '%store_url%', $account_page, $body );
+			$body = str_replace( '%store_url%', $redirect_url, $body );
 
 			// The AJAX URL.
 			$body = str_replace( '%sign_in_url%', \WC_AJAX::get_endpoint( 'siwk_sign_in_from_redirect' ), $body );
@@ -199,7 +199,7 @@ class SignInWithKlarna {
 		$endpoint     = self::REST_API_NAMESPACE . self::REST_API_CALLBACK_PATH;
 		$callback_url = home_url( "wp-json/{$endpoint}" );
 
-		$redirect_to = esc_attr( apply_filters( 'siwk_redirect_uri', $callback_url ) );
+		$redirect_to = esc_attr( apply_filters( 'siwk_callback_url', $callback_url ) );
 		$scope       = esc_attr( apply_filters( 'siwk_scope', 'openid offline_access payment:request:create profile:name profile:email profile:phone profile:billing_address' ) );
 
 		$attributes = "id='klarna-identity-button' data-scope='{$scope}' data-theme='{$theme}' data-shape='{$shape}' data-logo-alignment='{$alignment}' data-redirect-uri='{$redirect_to}'";
