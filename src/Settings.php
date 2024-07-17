@@ -209,7 +209,7 @@ class Settings {
 			'name'        => 'siwk_logo_alignment',
 			'title'       => __( 'Badge alignment' ),
 			'type'        => 'select',
-			'description' => __( 'Change alignment of the Klarna logo on the call to action button based on the provided configuration.', 'siwk' ),
+			'description' => __( 'Change alignment of the Klarna logo on the call to action button.', 'siwk' ),
 			'default'     => $this->default()['siwk_logo_alignment'],
 			'options'     => array(
 				'default' => __( 'Badge', 'siwk' ),
