@@ -27,7 +27,7 @@ class SignInWithKlarna {
 	 *
 	 * @var string
 	 */
-	public static $placement_hook = 'siwk_placement';
+	public static $placement_hook = 'output_button';
 
 	/**
 	 * The internal settings state.
@@ -68,11 +68,24 @@ class SignInWithKlarna {
 		$this->user     = new User( $this->jwt );
 		$this->ajax     = new AJAX( $this->jwt, $this->user );
 
+		// Frontend hooks.
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, self::$placement_hook ), intval( $this->settings->cart_placement ) );
 		add_action( 'woocommerce_login_form_end', array( $this, self::$placement_hook ) );
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'width_constrained_button' ), 5 );
 
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'rest_api_init', array( $this, 'register_callback_endpoint' ) );
+	}
+
+	/**
+	 * Outputs the button with a width and max-width 100% constrain.
+	 *
+	 * Used in the mini-cart.
+	 *
+	 * @return void
+	 */
+	public function width_constrained_button() {
+		$this->output_button( 'width: 100%; max-width: 100%;' );
 	}
 
 	/**
@@ -183,9 +196,10 @@ class SignInWithKlarna {
 	/**
 	 * Output the "Sign in with Klarna" button HTML.
 	 *
+	 * @param string $style The CSS style to apply to the button.
 	 * @return void
 	 */
-	public function siwk_placement() {
+	public function output_button( $style = '' ) {
 		// Only run this function ONCE PER ACTION to prevent duplicate buttons. First time it is run, did_action will return 0. A non-zero value means it has already been run.
 		if ( did_action( self::$placement_hook ) ) {
 			return;
@@ -203,6 +217,12 @@ class SignInWithKlarna {
 		$scope       = esc_attr( apply_filters( 'siwk_scope', 'openid offline_access payment:request:create profile:name profile:email profile:phone profile:billing_address' ) );
 
 		$attributes = "id='klarna-identity-button' data-scope='{$scope}' data-theme='{$theme}' data-shape='{$shape}' data-logo-alignment='{$alignment}' data-redirect-uri='{$redirect_to}'";
+
+		if ( ! empty( $style ) ) {
+			$attributes .= " style='" . esc_attr( $style ) . "'";
+		}
+
+		$attributes = apply_filters( 'siwk_button_attributes', $attributes );
 
 		// phpcs:ignore -- must be echoed as html; attributes already escaped.
 		echo "<klarna-identity-button $attributes></klarna-identity-button>";
