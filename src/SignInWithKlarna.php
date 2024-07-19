@@ -70,7 +70,7 @@ class SignInWithKlarna {
 
 		// Frontend hooks.
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, self::$placement_hook ), intval( $this->settings->cart_placement ) );
-		add_action( 'woocommerce_login_form_end', array( $this, self::$placement_hook ) );
+		add_action( 'woocommerce_login_form_start', array( $this, self::$placement_hook ) );
 		add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'width_constrained_button' ), 5 );
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
