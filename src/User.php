@@ -210,7 +210,8 @@ class User {
 		$id_token = wp_parse_args(
 			$id_token,
 			array(
-				'locale' => str_replace( '-', '_', get_locale() ),
+				'locale'          => str_replace( '-', '_', get_locale() ),
+				'billing_address' => array(),
 			)
 		);
 
