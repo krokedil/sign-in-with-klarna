@@ -230,6 +230,16 @@ class Settings {
 			),
 		);
 
+		$settings['siwk_callback_url'] = array(
+			'name'        => 'siwk_callback_url',
+			'title'       => __( 'Redirect URL', 'siwk' ),
+			'type'        => 'text',
+			'description' => __( 'Please add this URL to your list of allowed redirect URLs in the "Sign in with Klarna" settings on the Klarna merchant portal.', 'siwk' ),
+			'default'     => Redirect::get_callback_url(),
+			'disabled'    => true,
+			'css'         => 'width: ' . strlen( Redirect::get_callback_url() ) . 'ch; color: #2c3338',
+		);
+
 		return $settings;
 	}
 
