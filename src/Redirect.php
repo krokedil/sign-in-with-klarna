@@ -12,9 +12,12 @@ define( 'SIWK_VERSION', '0.0.2' );
  * Handles the callback from the redirect flow.
  */
 class Redirect {
-
-	public const REST_API_NAMESPACE     = 'siwk/v1';
-	public const REST_API_CALLBACK_PATH = '/callback';
+	/**
+	 * The redirect callback endpoint.
+	 *
+	 * @var string
+	 */
+	public const REDIRECT_CALLBACK_ENDPOINT = '/siwk/klarna/callback';
 
 	/**
 	 * The internal settings state.
@@ -30,23 +33,23 @@ class Redirect {
 	 */
 	public function __construct( $settings ) {
 		$this->settings = $settings;
-		add_action( 'rest_api_init', array( $this, 'register_callback_endpoint' ) );
+
+		// Check whether the request is for the callback endpoint. If so, handle it.
+		add_action( 'parse_request', array( $this, 'maybe_handle_callback' ) );
 	}
 
 	/**
-	 * Register endpoint for the sign-in callback.
+	 * Check whether the request is for the callback endpoint.
 	 *
+	 * @hook parse_request
+	 *
+	 * @param \WP $wp The WordPress request object.
 	 * @return void
 	 */
-	public function register_callback_endpoint() {
-		register_rest_route(
-			self::REST_API_NAMESPACE,
-			self::REST_API_CALLBACK_PATH,
-			array(
-				'methods'  => 'GET',
-				'callback' => array( $this, 'handle_redirect_callback' ),
-			)
-		);
+	public function maybe_handle_callback( $wp ) {
+		if ( strpos( $wp->request, 'siwk/klarna/callback' ) !== false ) {
+			$this->handle_redirect_callback();
+		}
 	}
 
 	/**
@@ -89,7 +92,6 @@ class Redirect {
 	 */
 	public static function get_callback_url() {
 		// Since Woo requires pretty permalinks, we can assume it is always set, therefore, don't have to fallback to the "rest_route" parameter.
-		$endpoint = self::REST_API_NAMESPACE . self::REST_API_CALLBACK_PATH;
-		return home_url( "wp-json/{$endpoint}" );
+		return home_url( self::REDIRECT_CALLBACK_ENDPOINT );
 	}
 }
