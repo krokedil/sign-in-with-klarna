@@ -11,10 +11,6 @@ define( 'SIWK_VERSION', '0.0.2' );
  * Sign_In_With_Klarna class.
  */
 class SignInWithKlarna {
-
-	public const REST_API_NAMESPACE     = 'siwk/v1';
-	public const REST_API_CALLBACK_PATH = '/callback';
-
 	/**
 	 * The handle name for the JavaScript library.
 	 *
@@ -68,13 +64,15 @@ class SignInWithKlarna {
 		$this->user     = new User( $this->jwt );
 		$this->ajax     = new AJAX( $this->jwt, $this->user );
 
+		// Initialize the callback endpoint for handling the redirect flow.
+		new Redirect( $this->settings );
+
 		// Frontend hooks.
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, self::$placement_hook ), intval( $this->settings->cart_placement ) );
 		add_action( 'woocommerce_login_form_start', array( $this, self::$placement_hook ) );
 		add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'width_constrained_button' ), 5 );
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
-		add_action( 'rest_api_init', array( $this, 'register_callback_endpoint' ) );
 	}
 
 	/**
@@ -86,55 +84,6 @@ class SignInWithKlarna {
 	 */
 	public function width_constrained_button() {
 		$this->output_button( 'width: 100%; max-width: 100%;' );
-	}
-
-	/**
-	 * Register endpoint for the sign-in callback.
-	 *
-	 * @return void
-	 */
-	public function register_callback_endpoint() {
-		register_rest_route(
-			self::REST_API_NAMESPACE,
-			self::REST_API_CALLBACK_PATH,
-			array(
-				'methods'  => 'GET',
-				'callback' => array( $this, 'handle_redirect_callback' ),
-			)
-		);
-	}
-
-	/**
-	 * Callback for the sign-in endpoint.
-	 *
-	 * @return void
-	 */
-	public function handle_redirect_callback() {
-		$response = wp_remote_get( plugin_dir_url( __FILE__ ) . 'templates/callback.html' );
-		$body     = wp_remote_retrieve_body( $response );
-
-		$redirect_url = apply_filters( 'siwk_redirect_url', get_permalink( wc_get_page_id( 'shop' ) ) );
-		if ( empty( $body ) ) {
-			wp_safe_redirect( $redirect_url );
-		} else {
-			header( 'Content-Type: text/html' );
-			$client_id = $this->settings->get( 'client_id' );
-			$locale    = $this->settings->locale;
-
-			// The Klarna SDK will not run any event if the redirect_uri differs from the pre-registered URL. Therefore, we cannot redirect the user to the callback.html page. Instead, we must echo the contents of the file. And since we cannot add any query parameters, we must use template strings to add the client ID and the locale.
-			$body = str_replace( '%client_id%', $client_id, $body );
-			$body = str_replace( '%locale%', $locale, $body );
-
-			// Show a link back to the account page in case the sign in fails.
-			$body = str_replace( '%store_url%', $redirect_url, $body );
-
-			// The AJAX URL.
-			$body = str_replace( '%sign_in_url%', \WC_AJAX::get_endpoint( 'siwk_sign_in_from_redirect' ), $body );
-
-			// phpcs:ignore -- body does not contain user input.
-			echo $body;
-		}
-		exit;
 	}
 
 
@@ -209,11 +158,7 @@ class SignInWithKlarna {
 		$shape     = esc_attr( apply_filters( 'siwk_button_shape', $this->settings->get( 'button_shape' ) ) ); // default (rounded), rectangle, pill.
 		$alignment = esc_attr( apply_filters( 'siwk_logo_alignment', $this->settings->get( 'badge_alignment' ) ) ); // badge, right, center.
 
-		// Woo requires pretty permalinks, therefore, we can don't have to fallback to the rest_route parameter.
-		$endpoint     = self::REST_API_NAMESPACE . self::REST_API_CALLBACK_PATH;
-		$callback_url = home_url( "wp-json/{$endpoint}" );
-
-		$redirect_to = esc_attr( apply_filters( 'siwk_callback_url', $callback_url ) );
+		$redirect_to = esc_attr( apply_filters( 'siwk_callback_url', Redirect::get_callback_url() ) );
 		$scope       = esc_attr( apply_filters( 'siwk_scope', 'openid offline_access payment:request:create profile:name profile:email profile:phone profile:billing_address' ) );
 
 		$attributes = "id='klarna-identity-button' data-scope='{$scope}' data-theme='{$theme}' data-shape='{$shape}' data-logo-alignment='{$alignment}' data-redirect-uri='{$redirect_to}'";
