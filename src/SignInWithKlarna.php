@@ -156,7 +156,7 @@ class SignInWithKlarna {
 
 		$theme     = esc_attr( apply_filters( 'siwk_button_theme', $this->settings->get( 'button_theme' ) ) ); // default (dark), light, outlined.
 		$shape     = esc_attr( apply_filters( 'siwk_button_shape', $this->settings->get( 'button_shape' ) ) ); // default (rounded), rectangle, pill.
-		$alignment = esc_attr( apply_filters( 'siwk_logo_alignment', $this->settings->get( 'badge_alignment' ) ) ); // badge, right, center.
+		$alignment = esc_attr( apply_filters( 'siwk_logo_alignment', $this->settings->get( 'logo_alignment' ) ) ); // badge, right, center.
 
 		$redirect_to = esc_attr( Redirect::get_callback_url() );
 		$scope       = esc_attr( $this->settings->scope );
