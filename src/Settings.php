@@ -91,6 +91,8 @@ class Settings {
 		);
 
 		$this->update( $settings );
+
+		// These are settings that are not accessible through the settings page.
 		$this->internal = array(
 			'locale' => apply_filters( 'siwk_locale', str_replace( '_', '-', get_locale() ) ),
 
@@ -107,7 +109,7 @@ class Settings {
 	 */
 	public function get( $setting ) {
 		$setting = str_replace( 'siwk_', '', $setting );
-		return $this->$setting;
+		return apply_filters( "siwk_{$setting}", $this->$setting );
 	}
 
 	/**
