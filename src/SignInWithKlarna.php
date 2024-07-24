@@ -158,10 +158,9 @@ class SignInWithKlarna {
 		$shape     = esc_attr( apply_filters( 'siwk_button_shape', $this->settings->get( 'button_shape' ) ) ); // default (rounded), rectangle, pill.
 		$alignment = esc_attr( apply_filters( 'siwk_logo_alignment', $this->settings->get( 'badge_alignment' ) ) ); // badge, right, center.
 
-		$redirect_to = esc_attr( apply_filters( 'siwk_callback_url', Redirect::get_callback_url() ) );
-		$scope       = esc_attr( apply_filters( 'siwk_scope', 'openid offline_access payment:request:create profile:name profile:email profile:phone profile:billing_address' ) );
-
-		$attributes = "id='klarna-identity-button' data-scope='{$scope}' data-theme='{$theme}' data-shape='{$shape}' data-logo-alignment='{$alignment}' data-redirect-uri='{$redirect_to}'";
+		$redirect_to = esc_attr( Redirect::get_callback_url() );
+		$scope       = esc_attr( $this->settings->scope );
+		$attributes  = "id='klarna-identity-button' data-scope='{$scope}' data-theme='{$theme}' data-shape='{$shape}' data-logo-alignment='{$alignment}' data-redirect-uri='{$redirect_to}'";
 
 		if ( ! empty( $style ) ) {
 			$attributes .= " style='" . esc_attr( $style ) . "'";

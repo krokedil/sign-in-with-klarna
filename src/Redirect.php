@@ -92,6 +92,6 @@ class Redirect {
 	 */
 	public static function get_callback_url() {
 		// Since Woo requires pretty permalinks, we can assume it is always set, therefore, don't have to fallback to the "rest_route" parameter.
-		return home_url( self::REDIRECT_CALLBACK_ENDPOINT );
+		return apply_filters( 'siwk_callback_url', home_url( self::REDIRECT_CALLBACK_ENDPOINT ) );
 	}
 }

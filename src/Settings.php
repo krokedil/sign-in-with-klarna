@@ -93,6 +93,9 @@ class Settings {
 		$this->update( $settings );
 		$this->internal = array(
 			'locale' => apply_filters( 'siwk_locale', str_replace( '_', '-', get_locale() ) ),
+
+			// These three scopes are required for full functionality and shouldn't be modified by the merchant.
+			'scope'  => 'openid offline_access payment:request:create ' . apply_filters( 'siwk_scope', 'profile:name profile:email profile:phone profile:billing_address' ),
 		);
 	}
 
@@ -234,10 +237,21 @@ class Settings {
 			'name'        => 'siwk_callback_url',
 			'title'       => __( 'Redirect URL', 'siwk' ),
 			'type'        => 'text',
-			'description' => __( 'Please add this URL to your list of allowed redirect URLs in the "Sign in with Klarna" settings on the Klarna merchant portal.', 'siwk' ),
+			'description' => __( 'Please add this URL to your list of allowed redirect URLs in the "Sign in with Klarna" settings on the <a href="https://portal.klarna.com/">Klarna merchant portal</a>.', 'siwk' ),
 			'default'     => Redirect::get_callback_url(),
 			'disabled'    => true,
 			'css'         => 'width: ' . strlen( Redirect::get_callback_url() ) . 'ch; color: #2c3338',
+		);
+
+		// TODO: Replace the gist with link to Krokedil's documentation.
+		$settings['siwk_scope'] = array(
+			'name'        => 'siwk_scopes',
+			'title'       => __( 'Scopes', 'siwk' ),
+			'type'        => 'textarea',
+			'description' => __( 'These scopes are included by default, as necessary for creating a WooCommerce customer account in your shop.  More about available scopes with Sign in with Klarna <a href="https://docs.klarna.com/conversion-boosters/sign-in-with-klarna/integrate-sign-in-with-klarna/web-sdk-integration/#scopes-and-claims">here</a>. Additional scopes can be customized if applicable, more info <a href="https://gist.github.com/mntzrr/4bf23ca394109d40575f2abc05811ddc">here</a>.', 'siwk' ),
+			'default'     => $this->scope,
+			'disabled'    => true,
+			'css'         => 'background: #fff !important; color: #2c3338; resize: none;',
 		);
 
 		return $settings;
