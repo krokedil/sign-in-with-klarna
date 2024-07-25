@@ -5,7 +5,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SIWK_VERSION', '0.0.2' );
+if ( ! defined( 'SIWK_VERSION' ) ) {
+	define( 'SIWK_VERSION', '0.0.2' );
+}
 
 /**
  * Sign_In_With_Klarna class.
