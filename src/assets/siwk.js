@@ -1,30 +1,33 @@
 if (siwk_params !== undefined) {
-  console.log('onSignIn defined.');
-  function onSignIn(response) {
-    const { access_token, refresh_token, id_token, expires_in } = response
-    console.log('Sign in OK', response)
-    jQuery.ajax({
-      type: 'POST',
-      url: siwk_params.sign_in_url,
-      data: {
-        nonce: siwk_params.sign_in_nonce,
-        access_token: access_token,
-        refresh_token: refresh_token,
-        id_token: id_token,
-        expires_in: expires_in,
+  window.KlarnaSDKCallback = function (klarna) {
+    klarna.Identity.on("signin", async (response) => {
+      const { user_account_linking } = response;
+      const { user_account_linking_id_token: id_token, user_account_linking_refresh_token: refresh_token } = user_account_linking;
 
-      },
-      success: (data) => {
-        console.log(data)
-        location.reload();
-      },
-      error: (data) => {
-        console.log(data)
-      }
+      jQuery.ajax({
+        type: 'POST',
+        url: siwk_params.sign_in_from_popup_url,
+        data: {
+          id_token,
+          refresh_token,
+          nonce: siwk_params.sign_in_from_popup_nonce
+        },
+        success: data => {
+          if (data.success) {
+            // Woo will sign-in the user, reload the page.
+            location.reload();
+          } else {
+            console.warn('siwk sign-in failed', data);
+          }
+        },
+        error: error => {
+          console.warn('siwk sign-in error', error);
+        }
+      })
     });
-  }
-  console.log('onSignInError defined.');
-  function onSignInError(e) {
-    console.log('Sign in error', e)
+
+    klarna.Identity.on("error", async (error) => {
+      console.warn('siwk error', error);
+    });
   }
 }

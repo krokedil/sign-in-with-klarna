@@ -26,10 +26,10 @@ class Settings {
 	/**
 	 * The environment to which the integration is pointing: playground or production.
 	 *
-	 * @var string 'playground' or 'production'.
+	 * @var string 'yes' or 'no'.
 	 */
 
-	public $environment;
+	public $test_mode;
 
 	/**
 	 * The button's color theme.
@@ -52,7 +52,7 @@ class Settings {
 	 */
 
 	/**
-	 * Change alignment of the Klarna logo on the call to action button based on the provided configuration.
+	 * Change alignment of the Klarna badge on the call to action button based on the provided configuration.
 	 *
 	 * @var string
 	 */
@@ -66,11 +66,18 @@ class Settings {
 	public $cart_placement;
 
 	/**
-	 * The regional endpoint (EU v. US).
+	 * The regional endpoint (EU v. NA).
 	 *
 	 * @var string
 	 */
 	public $region;
+
+	/**
+	 * Internal settings.
+	 *
+	 * @var array
+	 */
+	private $internal;
 
 	/**
 	 * Class constructor
@@ -84,6 +91,14 @@ class Settings {
 		);
 
 		$this->update( $settings );
+
+		// These are settings that are not accessible through the settings page.
+		$this->internal = array(
+			'locale' => apply_filters( 'siwk_locale', str_replace( '_', '-', get_locale() ) ),
+
+			// These three scopes are required for full functionality and shouldn't be modified by the merchant.
+			'scope'  => 'openid offline_access payment:request:create ' . apply_filters( 'siwk_scope', 'profile:name profile:email profile:phone profile:billing_address' ),
+		);
 	}
 
 	/**
@@ -94,7 +109,17 @@ class Settings {
 	 */
 	public function get( $setting ) {
 		$setting = str_replace( 'siwk_', '', $setting );
-		return $this->$setting;
+		return apply_filters( "siwk_{$setting}", $this->$setting );
+	}
+
+	/**
+	 * Intended for retrieving internal settings.
+	 *
+	 * @param string $name The name of the setting.
+	 * @return mixed|null The setting value or NULL if not found.
+	 */
+	public function __get( $name ) {
+		return $this->internal[ $name ] ?? null;
 	}
 
 	/**
@@ -125,21 +150,18 @@ class Settings {
 		$settings['siwk_client_id'] = array(
 			'name'        => 'siwk_client_id',
 			'title'       => __( 'Client ID', 'siwk' ),
-			'description' => __( 'The UUID you received after the Sign in with Klarna onboarding.', 'siwk' ),
+			'description' => __( 'The client ID you received after the Sign in with Klarna onboarding.', 'siwk' ),
 			'type'        => 'text',
 			'default'     => $this->default()['siwk_client_id'],
 		);
 
-		$settings['siwk_environment'] = array(
-			'name'        => 'siwk_environment',
-			'title'       => __( 'Environment', 'siwk' ),
-			'type'        => 'select',
-			'description' => __( 'The environment to which the integration is pointing.', 'siwk' ),
-			'default'     => $this->default()['siwk_environment'],
-			'options'     => array(
-				'playground' => __( 'Playground', 'siwk' ),
-				'production' => __( 'Production', 'siwk' ),
-			),
+		$settings['siwk_test_mode'] = array(
+			'name'        => 'siwk_test_mode',
+			'title'       => __( 'Test mode', 'siwk' ),
+			'type'        => 'checkbox',
+			'label'       => __( 'Enable test mode', 'siwk' ),
+			'description' => __( 'In test mode, customer data for a test user will be used. If the user does not already exist, a new user will be created using the test data.', 'siwk' ),
+			'default'     => $this->default()['siwk_test_mode'],
 		);
 
 		$settings['siwk_market'] = array(
@@ -158,6 +180,7 @@ class Settings {
 			'default'     => $this->default()['siwk_region'],
 			'options'     => array(
 				'eu' => __( 'EU', 'siwk' ),
+				'na' => __( 'NA', 'siwk' ),
 			),
 		);
 
@@ -168,9 +191,9 @@ class Settings {
 			'description' => __( 'The button\'s color theme.', 'siwk' ),
 			'default'     => $this->default()['siwk_button_theme'],
 			'options'     => array(
-				'default' => __( 'Default', 'siwk' ),
-				'dark'    => __( 'Dark', 'siwk' ),
-				'light'   => __( 'Light', 'siwk' ),
+				'default'  => __( 'Dark', 'siwk' ),
+				'light'    => __( 'Light', 'siwk' ),
+				'outlined' => __( 'Outlined', 'siwk' ),
 			),
 		);
 
@@ -181,27 +204,27 @@ class Settings {
 			'description' => __( 'The button\'s shape.', 'siwk' ),
 			'default'     => $this->default()['siwk_button_shape'],
 			'options'     => array(
-				'default'   => __( 'Default', 'siwk' ),
-				'rectangle' => __( 'Rectangle', 'siwk' ),
+				'rounded'   => __( 'Rounded', 'siwk' ),
+				'rectangle' => __( 'Rectangular', 'siwk' ),
 				'pill'      => __( 'Pill', 'siwk' ),
 			),
 		);
 
 		$settings['siwk_logo_alignment'] = array(
 			'name'        => 'siwk_logo_alignment',
-			'title'       => __( 'Logo alignment' ),
+			'title'       => __( 'Badge alignment' ),
 			'type'        => 'select',
-			'description' => __( 'Change alignment of the Klarna logo on the call to action button based on the provided configuration.', 'siwk' ),
+			'description' => __( 'Change alignment of the Klarna logo on the call to action button.', 'siwk' ),
 			'default'     => $this->default()['siwk_logo_alignment'],
 			'options'     => array(
-				'left'   => __( 'Left', 'siwk' ),
-				'center' => __( 'Center', 'siwk' ),
-				'right'  => __( 'Right', 'siwk' ),
+				'default' => __( 'Badge', 'siwk' ),
+				'left'    => __( 'Left', 'siwk' ),
+				'center'  => __( 'Centered', 'siwk' ),
 			),
 		);
 
 		$settings['siwk_cart_placement'] = array(
-			'name'        => 'siwk_cart_placemeent',
+			'name'        => 'siwk_cart_placement',
 			'title'       => __( 'Cart page placement', 'siwk' ),
 			'type'        => 'select',
 			'description' => __( 'Change the placement of the "Sign in with Klarna" button on the cart page.', 'siwk' ),
@@ -210,6 +233,27 @@ class Settings {
 				'10'  => __( 'Before "Proceed to checkout" button', 'siwk' ),
 				'100' => __( 'After "Proceed to checkout" button', 'siwk' ),
 			),
+		);
+
+		$settings['siwk_callback_url'] = array(
+			'name'        => 'siwk_callback_url',
+			'title'       => __( 'Redirect URL', 'siwk' ),
+			'type'        => 'text',
+			'description' => __( 'Please add this URL to your list of allowed redirect URLs in the "Sign in with Klarna" settings on the <a href="https://portal.klarna.com/">Klarna merchant portal</a>.', 'siwk' ),
+			'default'     => Redirect::get_callback_url(),
+			'disabled'    => true,
+			'css'         => 'width: ' . strlen( Redirect::get_callback_url() ) . 'ch; color: #2c3338',
+		);
+
+		// TODO: Replace the gist with link to Krokedil's documentation.
+		$settings['siwk_scope'] = array(
+			'name'        => 'siwk_scopes',
+			'title'       => __( 'Scopes', 'siwk' ),
+			'type'        => 'textarea',
+			'description' => __( 'These scopes are included by default, as necessary for creating a WooCommerce customer account in your shop.  More about available scopes with Sign in with Klarna <a href="https://docs.klarna.com/conversion-boosters/sign-in-with-klarna/integrate-sign-in-with-klarna/web-sdk-integration/#scopes-and-claims">here</a>. Additional scopes can be customized if applicable, more info <a href="https://gist.github.com/mntzrr/4bf23ca394109d40575f2abc05811ddc">here</a>.', 'siwk' ),
+			'default'     => $this->scope,
+			'disabled'    => true,
+			'css'         => 'background: #fff !important; color: #2c3338; resize: none;',
 		);
 
 		return $settings;
@@ -225,7 +269,7 @@ class Settings {
 		$this->client_id      = $settings['siwk_client_id'];
 		$this->market         = $settings['siwk_market'];
 		$this->region         = $settings['siwk_region'];
-		$this->environment    = $settings['siwk_environment'];
+		$this->test_mode      = $settings['siwk_test_mode'];
 		$this->button_theme   = $settings['siwk_button_theme'];
 		$this->button_shape   = $settings['siwk_button_shape'];
 		$this->logo_alignment = $settings['siwk_logo_alignment'];
@@ -243,12 +287,11 @@ class Settings {
 			'siwk_client_id'      => '',
 			'siwk_market'         => wc_get_base_location()['country'] ?? '',
 			'siwk_region'         => 'eu',
-			'siwk_environment'    => 'playground',
+			'siwk_test_mode'      => 'no',
 			'siwk_button_theme'   => 'default',
-			'siwk_button_shape'   => 'default',
-			'siwk_logo_alignment' => 'left',
+			'siwk_button_shape'   => 'rounded',
+			'siwk_logo_alignment' => 'default',
 			'siwk_cart_placement' => 10,
 		);
-
 	}
 }
