@@ -173,15 +173,24 @@ class Settings {
 					'default'     => $this->default()['siwk_client_id'],
 					'desc_tip'    => true,
 				),
-				'siwk_test_mode'      => array(
-					'name'        => 'siwk_test_mode',
-					'title'       => __( 'Test mode', 'siwk' ),
-					'type'        => 'checkbox',
-					'label'       => __( 'Enable test mode', 'siwk' ),
-					'description' => __( 'In test mode, customer data for a test user will be used. If the user does not already exist, a new user will be created using the test data.', 'siwk' ),
-					'default'     => $this->default()['siwk_test_mode'],
+				'siwk_callback_url'   => array(
+					'name'        => 'siwk_callback_url',
+					'title'       => __( 'Redirect URL', 'siwk' ),
+					'type'        => 'text',
+					'description' => __( 'Add this URL to your list of allowed redirect URLs in the "Sign in with Klarna" settings on the <a href="https://portal.klarna.com/">Klarna merchant portal</a>.', 'siwk' ),
+					'default'     => Redirect::get_callback_url(),
+					'disabled'    => true,
+					'css'         => 'width: ' . strlen( Redirect::get_callback_url() ) . 'ch; color: #2c3338',
 				),
-
+				'siwk_scope'          => array(
+					'name'        => 'siwk_scopes',
+					'title'       => __( 'Scopes', 'siwk' ),
+					'type'        => 'textarea',
+					'description' => __( 'These scopes are included by default, as necessary for creating a WooCommerce customer account in your shop.  More about available scopes with Sign in with Klarna <a href="https://docs.klarna.com/conversion-boosters/sign-in-with-klarna/integrate-sign-in-with-klarna/web-sdk-integration/#scopes-and-claims">here</a>. Additional scopes can be customized if applicable, more info <a href="https://gist.github.com/mntzrr/4bf23ca394109d40575f2abc05811ddc">here</a>.', 'siwk' ),
+					'default'     => $this->scope,
+					'disabled'    => true,
+					'css'         => 'background: #fff !important; color: #2c3338; resize: none;',
+				),
 				'siwk_market'         => array(
 					'name'        => 'siwk_market',
 					'title'       => __( 'Market', 'siwk' ),
@@ -251,24 +260,6 @@ class Settings {
 					),
 					'desc_tip'    => true,
 				),
-				'siwk_callback_url'   => array(
-					'name'        => 'siwk_callback_url',
-					'title'       => __( 'Redirect URL', 'siwk' ),
-					'type'        => 'text',
-					'description' => __( 'Please add this URL to your list of allowed redirect URLs in the "Sign in with Klarna" settings on the <a href="https://portal.klarna.com/">Klarna merchant portal</a>.', 'siwk' ),
-					'default'     => Redirect::get_callback_url(),
-					'disabled'    => true,
-					'css'         => 'width: ' . strlen( Redirect::get_callback_url() ) . 'ch; color: #2c3338',
-				),
-				'siwk_scope'          => array(
-					'name'        => 'siwk_scopes',
-					'title'       => __( 'Scopes', 'siwk' ),
-					'type'        => 'textarea',
-					'description' => __( 'These scopes are included by default, as necessary for creating a WooCommerce customer account in your shop.  More about available scopes with Sign in with Klarna <a href="https://docs.klarna.com/conversion-boosters/sign-in-with-klarna/integrate-sign-in-with-klarna/web-sdk-integration/#scopes-and-claims">here</a>. Additional scopes can be customized if applicable, more info <a href="https://gist.github.com/mntzrr/4bf23ca394109d40575f2abc05811ddc">here</a>.', 'siwk' ),
-					'default'     => $this->scope,
-					'disabled'    => true,
-					'css'         => 'background: #fff !important; color: #2c3338; resize: none;',
-				),
 			)
 		);
 	}
@@ -280,10 +271,12 @@ class Settings {
 	 * @return void
 	 */
 	private function store( $settings ) {
+		$default = $this->default();
+
 		$this->client_id      = $settings['siwk_client_id'];
 		$this->market         = $settings['siwk_market'];
 		$this->region         = $settings['siwk_region'];
-		$this->test_mode      = $settings['siwk_test_mode'];
+		$this->test_mode      = $settings['testmode'] ?? $default['siwk_test_mode'];
 		$this->button_theme   = $settings['siwk_button_theme'];
 		$this->button_shape   = $settings['siwk_button_shape'];
 		$this->logo_alignment = $settings['siwk_logo_alignment'];
