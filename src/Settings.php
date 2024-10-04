@@ -91,6 +91,12 @@ class Settings {
 			$this->default(),
 		);
 		$this->update( $settings );
+
+		if ( isset( $settings['siwk_callback_url'] ) && empty( $settings['siwk_callback_url'] ) ) {
+			$settings['siwk_callback_url'] = Redirect::get_callback_url();
+			update_option( 'woocommerce_klarna_payments_settings', $settings );
+		}
+
 		add_filter( 'wc_gateway_klarna_payments_settings', array( $this, 'extend_settings' ) );
 	}
 
@@ -152,13 +158,15 @@ class Settings {
 					'default' => $this->default()['siwk_enabled'],
 				),
 				'siwk_callback_url'                    => array(
-					'name'        => 'siwk_callback_url',
-					'title'       => __( 'Redirect URL', 'siwk' ),
-					'type'        => 'text',
-					'description' => __( 'Add this URL to your list of allowed redirect URLs in the "Sign in with Klarna" settings on the <a href="https://portal.klarna.com/">Klarna merchant portal</a>.', 'siwk' ),
-					'default'     => Redirect::get_callback_url(),
-					'disabled'    => true,
-					'css'         => 'width: ' . strlen( Redirect::get_callback_url() ) . 'ch; color: #2c3338',
+					'name'              => 'siwk_callback_url',
+					'title'             => __( 'Redirect URL', 'siwk' ),
+					'type'              => 'text',
+					'description'       => __( 'Add this URL to your list of allowed redirect URLs in the "Sign in with Klarna" settings on the <a href="https://portal.klarna.com/">Klarna merchant portal</a>.', 'siwk' ),
+					'default'           => Redirect::get_callback_url(),
+					'css'               => 'width: ' . strlen( Redirect::get_callback_url() ) . 'ch; color: #2c3338',
+					'custom_attributes' => array(
+						'readonly' => 'readonly',
+					),
 				),
 				'siwk_button_theme'                    => array(
 					'name'        => 'siwk_button_theme',
