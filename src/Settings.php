@@ -94,7 +94,7 @@ class Settings {
 		$this->locale = apply_filters( 'siwk_locale', str_replace( '_', '-', get_locale() ) );
 
 		// These three scopes are required for full functionality and shouldn't be modified by the merchant.
-		$this->scope = 'openid offline_access payment:request:create ' . apply_filters( 'siwk_scope', 'profile:name profile:email profile:phone profile:billing_address' );
+		$this->scope = 'openid offline_access customer:login ' . apply_filters( 'siwk_scope', 'profile:name profile:email profile:phone profile:billing_address' );
 
 		add_filter( 'wc_gateway_klarna_payments_settings', array( $this, 'extend_settings' ) );
 	}
