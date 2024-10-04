@@ -5,9 +5,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SIWK_VERSION', '0.0.2' );
-
-
 /**
  * Handles the callback from the redirect flow.
  */

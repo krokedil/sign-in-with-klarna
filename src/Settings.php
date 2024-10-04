@@ -65,14 +65,19 @@ class Settings {
 	 */
 	public $cart_placement;
 
-
+	/**
+	 * The OAuth scopes.
+	 *
+	 * @var string
+	 */
+	public $scope;
 
 	/**
-	 * Internal settings.
+	 * The locale.
 	 *
-	 * @var array
+	 * @var string
 	 */
-	private $internal;
+	public $locale;
 
 	/**
 	 * Class constructor
@@ -86,14 +91,10 @@ class Settings {
 		);
 
 		$this->update( $settings );
+		$this->locale = apply_filters( 'siwk_locale', str_replace( '_', '-', get_locale() ) );
 
-		// These are settings that are not accessible through the settings page.
-		$this->internal = array(
-			'locale' => apply_filters( 'siwk_locale', str_replace( '_', '-', get_locale() ) ),
-
-			// These three scopes are required for full functionality and shouldn't be modified by the merchant.
-			'scope'  => 'openid offline_access payment:request:create ' . apply_filters( 'siwk_scope', 'profile:name profile:email profile:phone profile:billing_address' ),
-		);
+		// These three scopes are required for full functionality and shouldn't be modified by the merchant.
+		$this->scope = 'openid offline_access payment:request:create ' . apply_filters( 'siwk_scope', 'profile:name profile:email profile:phone profile:billing_address' );
 
 		add_filter( 'wc_gateway_klarna_payments_settings', array( $this, 'extend_settings' ) );
 	}
@@ -107,16 +108,6 @@ class Settings {
 	public function get( $setting ) {
 		$setting = str_replace( 'siwk_', '', $setting );
 		return apply_filters( "siwk_{$setting}", $this->$setting );
-	}
-
-	/**
-	 * Intended for retrieving internal settings.
-	 *
-	 * @param string $name The name of the setting.
-	 * @return mixed|null The setting value or NULL if not found.
-	 */
-	public function __get( $name ) {
-		return $this->internal[ $name ] ?? null;
 	}
 
 	/**
@@ -266,6 +257,7 @@ class Settings {
 		$this->logo_alignment = $settings['siwk_logo_alignment'];
 		$this->cart_placement = $settings['siwk_cart_placement'];
 		$this->client_id      = $this->get_client_id( $settings );
+		$this->market         = kp_get_klarna_country();
 	}
 
 	/**

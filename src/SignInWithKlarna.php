@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'SIWK_VERSION' ) ) {
-	define( 'SIWK_VERSION', '0.0.2' );
+	define( 'SIWK_VERSION', '1.0.0' );
 }
 
 /**
@@ -136,12 +136,8 @@ class SignInWithKlarna {
 			return $tag;
 		}
 
-		$locale      = esc_attr( $this->settings->locale );
-		$client_id   = esc_attr( apply_filters( 'siwk_client_id', $this->settings->get( 'client_id' ) ) );
-		$market      = esc_attr( apply_filters( 'siwk_market', $this->settings->get( 'market' ) ) );
-		$environment = esc_attr( apply_filters( 'siwk_environment', wc_string_to_bool( $this->settings->get( 'test_mode' ) ) ? 'playground' : 'production' ) );
-
-		return str_replace( ' src', " defer data-locale='{$locale}' data-market='{$market}' data-environment='{$environment}' data-client-id='{$client_id}' src", $tag );
+		$attributes = $this->get_attributes();
+		return str_replace( ' src', " defer {$attributes}' src", $tag );
 	}
 
 	/**
@@ -156,14 +152,7 @@ class SignInWithKlarna {
 			return;
 		}
 
-		$theme     = esc_attr( $this->settings->get( 'button_theme' ) ); // default (dark), light, outlined.
-		$shape     = esc_attr( $this->settings->get( 'button_shape' ) ); // default (rounded), rectangle, pill.
-		$alignment = esc_attr( $this->settings->get( 'logo_alignment' ) ); // badge, right, center.
-
-		$redirect_to = esc_attr( Redirect::get_callback_url() );
-		$scope       = esc_attr( $this->settings->scope );
-		$attributes  = "id='klarna-identity-button' data-scope='{$scope}' data-theme='{$theme}' data-shape='{$shape}' data-logo-alignment='{$alignment}' data-redirect-uri='{$redirect_to}'";
-
+		$attributes = $this->get_attributes();
 		if ( ! empty( $style ) ) {
 			$attributes .= " style='" . esc_attr( $style ) . "'";
 		}
@@ -171,6 +160,22 @@ class SignInWithKlarna {
 		$attributes = apply_filters( 'siwk_button_attributes', $attributes );
 
 		// phpcs:ignore -- must be echoed as html; attributes already escaped.
-		echo "<klarna-identity-button $attributes></klarna-identity-button>";
+		echo "<klarna-identity-button id='klarna-identity-button' $attributes></klarna-identity-button>";
+	}
+
+	/**
+	 * Get the attributes for the Klarna button.
+	 *
+	 * @return string
+	 */
+	private function get_attributes() {
+		$locale      = esc_attr( $this->settings->locale );
+		$scope       = esc_attr( $this->settings->scope );
+		$market      = esc_attr( apply_filters( 'siwk_market', $this->settings->market ) );
+		$environment = esc_attr( apply_filters( 'siwk_environment', wc_string_to_bool( $this->settings->get( 'test_mode' ) ) ? 'playground' : 'production' ) );
+		$client_id   = esc_attr( apply_filters( 'siwk_client_id', $this->settings->get( 'client_id' ) ) );
+		$redirect_to = esc_attr( Redirect::get_callback_url() );
+
+		return "data-locale='{$locale}' data-scope='{$scope}' data-market='{$market}' data-environment='{$environment}' data-client-id='{$client_id}' data-redirect-uri='{$redirect_to}'";
 	}
 }
