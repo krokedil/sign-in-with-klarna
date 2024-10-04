@@ -65,12 +65,7 @@ class Settings {
 	 */
 	public $cart_placement;
 
-	/**
-	 * The regional endpoint (EU v. NA).
-	 *
-	 * @var string
-	 */
-	public $region;
+
 
 	/**
 	 * Internal settings.
@@ -136,7 +131,6 @@ class Settings {
 		}
 	}
 
-
 	/**
 	 * Extend your plugin with the required SIWK settings.
 	 *
@@ -165,14 +159,6 @@ class Settings {
 					'label'   => __( 'Enable Sign in with Klarna', 'siwk' ),
 					'default' => $this->default()['siwk_enabled'],
 				),
-				'siwk_client_id'      => array(
-					'name'        => 'siwk_client_id',
-					'title'       => __( 'Client ID', 'siwk' ),
-					'description' => __( 'The client ID you received after the Sign in with Klarna onboarding.', 'siwk' ),
-					'type'        => 'text',
-					'default'     => $this->default()['siwk_client_id'],
-					'desc_tip'    => true,
-				),
 				'siwk_callback_url'   => array(
 					'name'        => 'siwk_callback_url',
 					'title'       => __( 'Redirect URL', 'siwk' ),
@@ -190,24 +176,6 @@ class Settings {
 					'default'     => $this->scope,
 					'disabled'    => true,
 					'css'         => 'background: #fff !important; color: #2c3338; resize: none;',
-				),
-				'siwk_market'         => array(
-					'name'        => 'siwk_market',
-					'title'       => __( 'Market', 'siwk' ),
-					'type'        => 'text',
-					'description' => __( 'The market or the country where this integration is available.', 'siwk' ),
-					'default'     => $this->default()['siwk_market'],
-				),
-				'siwk_region'         => array(
-					'name'        => 'siwk_region',
-					'title'       => __( 'Region', 'siwk' ),
-					'type'        => 'select',
-					'description' => __( 'The regional endpoint.', 'siwk' ),
-					'default'     => $this->default()['siwk_region'],
-					'options'     => array(
-						'eu' => __( 'EU', 'siwk' ),
-						'na' => __( 'NA', 'siwk' ),
-					),
 				),
 				'siwk_button_theme'   => array(
 					'name'        => 'siwk_button_theme',
@@ -265,6 +233,25 @@ class Settings {
 	}
 
 	/**
+	 * Retrieve the client ID from the Klarna plugin settings.
+	 *
+	 * @param array $settings The settings to extract from.
+	 * @return string The client ID or empty string.
+	 */
+	private function get_client_id( $settings ) {
+		$country     = strtolower( kp_get_klarna_country() );
+		$test_mode   = wc_string_to_bool( $this->test_mode );
+		$combined_eu = wc_string_to_bool( $settings['combine_eu_credentials'] ?? 'no' );
+
+		$prefix = $test_mode ? 'test_' : '';
+		if ( $combined_eu ) {
+			return $settings[ "{$prefix}client_id_eu" ] ?? '';
+		}
+
+		return $settings[ "{$prefix}client_id_{$country}" ] ?? '';
+	}
+
+	/**
 	 * Update the internal settings state.
 	 *
 	 * @param array $settings The settings to extract from.
@@ -273,14 +260,12 @@ class Settings {
 	private function store( $settings ) {
 		$default = $this->default();
 
-		$this->client_id      = $settings['siwk_client_id'];
-		$this->market         = $settings['siwk_market'];
-		$this->region         = $settings['siwk_region'];
 		$this->test_mode      = $settings['testmode'] ?? $default['siwk_test_mode'];
 		$this->button_theme   = $settings['siwk_button_theme'];
 		$this->button_shape   = $settings['siwk_button_shape'];
 		$this->logo_alignment = $settings['siwk_logo_alignment'];
 		$this->cart_placement = $settings['siwk_cart_placement'];
+		$this->client_id      = $this->get_client_id( $settings );
 	}
 
 	/**
@@ -292,14 +277,13 @@ class Settings {
 		return array(
 			'siwk_client_id'      => '',
 			'siwk_enabled'        => 'no',
-			'siwk_market'         => wc_get_base_location()['country'] ?? '',
-			'siwk_region'         => 'eu',
 			'siwk_test_mode'      => 'no',
 			'siwk_title_theme'    => __( 'Theme, button shape & placements', 'siwk' ),
 			'siwk_button_theme'   => 'default',
 			'siwk_button_shape'   => 'rounded',
 			'siwk_logo_alignment' => 'default',
 			'siwk_cart_placement' => 10,
+			'siwk_callback_url'   => Redirect::get_callback_url(),
 		);
 	}
 }

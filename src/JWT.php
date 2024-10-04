@@ -3,6 +3,7 @@ namespace Krokedil\SignInWithKlarna;
 
 use Firebase\JWT\JWT as FirebaseJWT;
 use Firebase\JWT\JWK as FirebaseJWK;
+use KP_Form_Fields;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -34,6 +35,13 @@ class JWT {
 	private $settings;
 
 	/**
+	 * The regional endpoint (EU v. NA).
+	 *
+	 * @var string `eu` or `na`.
+	 */
+	public $region;
+
+	/**
 	 * JWKS
 	 *
 	 * @var array
@@ -49,8 +57,17 @@ class JWT {
 	public function __construct( $test_mode, $settings ) {
 		$environment    = $test_mode ? 'playground.' : '';
 		$this->base_url = "https://login.{$environment}klarna.com";
-		$this->jwks_url = "{$this->base_url}/{$settings->region}/lp/idp/.well-known/jwks.json";
 		$this->settings = $settings;
+
+		if ( \class_exists( 'KP_Form_Fields' ) ) {
+			$country      = strtolower( kp_get_klarna_country() );
+			$country_data = KP_Form_Fields::$kp_form_auto_countries[ $country ] ?? null;
+			$endpoint     = empty( $country_data['endpoint'] ) ? 'eu' : 'na';
+
+			$this->region = strtolower( apply_filters( 'klarna_base_region', $endpoint ) );
+		}
+
+		$this->jwks_url = "{$this->base_url}/{$this->region}/lp/idp/.well-known/jwks.json";
 	}
 
 	/**
@@ -123,7 +140,7 @@ class JWT {
 
 		// We retrieve the client ID from the settings. This should ensure that a refresh token is only used for the correct client.
 		$response = wp_remote_post(
-			"{$this->base_url}/{$this->settings->region}/lp/idp/oauth2/token",
+			"{$this->base_url}/{$this->region}/lp/idp/oauth2/token",
 			array(
 				'headers' => array(
 					'Content-Type' => 'application/x-www-form-urlencoded',
