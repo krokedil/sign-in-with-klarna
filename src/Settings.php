@@ -223,7 +223,7 @@ class Settings {
 					'name'              => 'siwk_required_scopes',
 					'title'             => __( 'Required Customer Data', 'siwk' ),
 					'type'              => 'checkbox',
-					'label'             => __( 'Email address', 'siwk' ),
+					'label'             => __( 'Email Address', 'siwk' ),
 					'default'           => 'yes',
 					'disabled'          => true,
 					'custom_attributes' => array(
@@ -277,7 +277,7 @@ class Settings {
 				'siwk_optional_scopes_language'        => array(
 					'name'    => 'siwk_optional_scopes_language',
 					'type'    => 'checkbox',
-					'label'   => __( 'Language preference', 'siwk' ),
+					'label'   => __( 'Language Preference', 'siwk' ),
 					'default' => 'no',
 					'class'   => 'siwk',
 				),
