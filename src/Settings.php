@@ -66,18 +66,19 @@ class Settings {
 	public $cart_placement;
 
 	/**
-	 * The OAuth scopes.
-	 *
-	 * @var string
-	 */
-	public $scope;
-
-	/**
 	 * The locale.
 	 *
 	 * @var string
 	 */
 	public $locale;
+
+
+	/**
+	 * OAuth scopes.
+	 *
+	 * @var array
+	 */
+	private $scope;
 
 	/**
 	 * Class constructor
@@ -89,13 +90,7 @@ class Settings {
 			$settings,
 			$this->default(),
 		);
-
 		$this->update( $settings );
-		$this->locale = apply_filters( 'siwk_locale', str_replace( '_', '-', get_locale() ) );
-
-		// These three scopes are required for full functionality and shouldn't be modified by the merchant.
-		$this->scope = 'openid offline_access customer:login ' . apply_filters( 'siwk_scope', 'profile:name profile:email profile:phone profile:billing_address' );
-
 		add_filter( 'wc_gateway_klarna_payments_settings', array( $this, 'extend_settings' ) );
 	}
 
@@ -107,7 +102,13 @@ class Settings {
 	 */
 	public function get( $setting ) {
 		$setting = str_replace( 'siwk_', '', $setting );
-		return apply_filters( "siwk_{$setting}", $this->$setting );
+		if ( 'scope' === $setting ) {
+			// These three scopes are required for full functionality and shouldn't be modified by the merchant, and must be excluded from the filter.
+			$required = 'openid offline_access customer:login ';
+			return $required . apply_filters( "siwk_{$setting}", implode( ' ', array_keys( array_filter( $this->scope ) ) ) );
+		}
+
+		return apply_filters( "siwk_{$setting}", $this->{$setting} );
 	}
 
 	/**
@@ -132,7 +133,7 @@ class Settings {
 		return array_merge(
 			$settings,
 			array(
-				'siwk_title'          => array(
+				'siwk_title'                           => array(
 					'title'       => __( 'Sign in with Klarna', 'siwk' ),
 					'description' => __( 'An improved way to drive shoppers straight to the checkout, with all their preferences already set.', 'siwk' ),
 					'links'       => array(
@@ -143,14 +144,14 @@ class Settings {
 					),
 					'type'        => 'kp_section_start',
 				),
-				'siwk_enabled'        => array(
+				'siwk_enabled'                         => array(
 					'name'    => 'siwk_enabled',
 					'title'   => __( 'Enable/Disable', 'siwk' ),
 					'type'    => 'checkbox',
 					'label'   => __( 'Enable Sign in with Klarna', 'siwk' ),
 					'default' => $this->default()['siwk_enabled'],
 				),
-				'siwk_callback_url'   => array(
+				'siwk_callback_url'                    => array(
 					'name'        => 'siwk_callback_url',
 					'title'       => __( 'Redirect URL', 'siwk' ),
 					'type'        => 'text',
@@ -159,16 +160,7 @@ class Settings {
 					'disabled'    => true,
 					'css'         => 'width: ' . strlen( Redirect::get_callback_url() ) . 'ch; color: #2c3338',
 				),
-				'siwk_scope'          => array(
-					'name'        => 'siwk_scopes',
-					'title'       => __( 'Scopes', 'siwk' ),
-					'type'        => 'textarea',
-					'description' => __( 'These scopes are included by default, as necessary for creating a WooCommerce customer account in your shop.  More about available scopes with Sign in with Klarna <a href="https://docs.klarna.com/conversion-boosters/sign-in-with-klarna/integrate-sign-in-with-klarna/web-sdk-integration/#scopes-and-claims">here</a>. Additional scopes can be customized if applicable, more info <a href="https://gist.github.com/mntzrr/4bf23ca394109d40575f2abc05811ddc">here</a>.', 'siwk' ),
-					'default'     => $this->scope,
-					'disabled'    => true,
-					'css'         => 'background: #fff !important; color: #2c3338; resize: none;',
-				),
-				'siwk_button_theme'   => array(
+				'siwk_button_theme'                    => array(
 					'name'        => 'siwk_button_theme',
 					'title'       => __( 'Button theme' ),
 					'type'        => 'select',
@@ -181,7 +173,7 @@ class Settings {
 					),
 					'desc_tip'    => true,
 				),
-				'siwk_button_shape'   => array(
+				'siwk_button_shape'                    => array(
 					'name'        => 'siwk_button_shape',
 					'title'       => __( 'Button shape' ),
 					'type'        => 'select',
@@ -194,7 +186,7 @@ class Settings {
 					),
 					'desc_tip'    => true,
 				),
-				'siwk_logo_alignment' => array(
+				'siwk_logo_alignment'                  => array(
 					'name'        => 'siwk_logo_alignment',
 					'title'       => __( 'Badge alignment' ),
 					'type'        => 'select',
@@ -207,7 +199,7 @@ class Settings {
 					),
 					'desc_tip'    => true,
 				),
-				'siwk_cart_placement' => array(
+				'siwk_cart_placement'                  => array(
 					'name'        => 'siwk_cart_placement',
 					'title'       => __( 'Cart page placement', 'siwk' ),
 					'type'        => 'select',
@@ -218,6 +210,68 @@ class Settings {
 						'100' => __( 'After "Proceed to checkout" button', 'siwk' ),
 					),
 					'desc_tip'    => true,
+				),
+				'siwk_required_scopes_email'           => array(
+					'name'              => 'siwk_required_scopes',
+					'title'             => __( 'Required Customer Data', 'siwk' ),
+					'type'              => 'checkbox',
+					'label'             => __( 'Email address', 'siwk' ),
+					'default'           => 'yes',
+					'disabled'          => true,
+					'custom_attributes' => array(
+						'checked' => 'true',
+					),
+				),
+				'siwk_required_scopes_name'            => array(
+					'name'              => 'siwk_required_scopes_name',
+					'type'              => 'checkbox',
+					'label'             => __( 'Full name', 'siwk' ),
+					'default'           => 'yes',
+					'disabled'          => true,
+					'class'             => 'siwk',
+					'custom_attributes' => array(
+						'checked' => 'true',
+					),
+				),
+				'siwk_required_scopes_phone'           => array(
+					'name'              => 'siwk_required_scopes_phone',
+					'type'              => 'checkbox',
+					'label'             => __( 'Phone number', 'siwk' ),
+					'description'       => __( 'These scopes are included by default, as necessary for creating a WooCommerce customer account in your shop.  More about available scopes with Sign in with Klarna <a href="https://docs.klarna.com/conversion-boosters/sign-in-with-klarna/integrate-sign-in-with-klarna/web-sdk-integration/#scopes-and-claims">here</a>. Additional scopes can be customized if applicable, more info <a href="https://gist.github.com/mntzrr/4bf23ca394109d40575f2abc05811ddc">here</a>.', 'siwk' ),
+					'default'           => 'yes',
+					'disabled'          => true,
+					'class'             => 'siwk',
+					'custom_attributes' => array(
+						'checked' => 'true',
+					),
+				),
+				'siwk_optional_scopes_date_of_birth'   => array(
+					'name'    => 'siwk_optional_scopes_date_of_birth',
+					'title'   => 'Request Additional Customer Data',
+					'type'    => 'checkbox',
+					'label'   => __( 'Date of birth', 'siwk' ),
+					'default' => 'yes',
+				),
+				'siwk_optional_scopes_country'         => array(
+					'name'    => 'siwk_optional_scopes_country',
+					'type'    => 'checkbox',
+					'label'   => __( 'Country', 'siwk' ),
+					'default' => 'no',
+					'class'   => 'siwk',
+				),
+				'siwk_optional_scopes_billing_address' => array(
+					'name'    => 'siwk_optional_scopes_billing_address',
+					'type'    => 'checkbox',
+					'label'   => __( 'Billing address', 'siwk' ),
+					'default' => 'no',
+					'class'   => 'siwk',
+				),
+				'siwk_optional_scopes_language'        => array(
+					'name'    => 'siwk_optional_scopes_language',
+					'type'    => 'checkbox',
+					'label'   => __( 'Language preference', 'siwk' ),
+					'default' => 'no',
+					'class'   => 'siwk',
 				),
 			)
 		);
@@ -258,6 +312,19 @@ class Settings {
 		$this->cart_placement = $settings['siwk_cart_placement'];
 		$this->client_id      = $this->get_client_id( $settings );
 		$this->market         = kp_get_klarna_country();
+
+		$this->locale = apply_filters( 'siwk_locale', str_replace( '_', '-', get_locale() ) );
+
+		// The array keys match the name of the scopes they define.
+		$this->scope = array(
+			'profile:name'            => wc_string_to_bool( $settings['siwk_required_scopes_name'] ),
+			'profile:email'           => wc_string_to_bool( $settings['siwk_required_scopes_email'] ),
+			'profile:phone'           => wc_string_to_bool( $settings['siwk_required_scopes_phone'] ),
+			'profile:billing_address' => wc_string_to_bool( $settings['siwk_optional_scopes_billing_address'] ),
+			'profile:language'        => wc_string_to_bool( $settings['siwk_optional_scopes_language'] ),
+			'profile:country'         => wc_string_to_bool( $settings['siwk_optional_scopes_country'] ),
+			'profile:date_of_birth'   => wc_string_to_bool( $settings['siwk_optional_scopes_date_of_birth'] ),
+		);
 	}
 
 	/**

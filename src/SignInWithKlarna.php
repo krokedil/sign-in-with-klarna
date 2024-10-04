@@ -74,7 +74,11 @@ class SignInWithKlarna {
 		add_action( 'woocommerce_login_form_start', array( $this, self::$placement_hook ) );
 		add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'width_constrained_button' ), 5 );
 
+		// Enqueue library and SDK.
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+
+		// Enqueue settings page styles.
+		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 	}
 
 	/**
@@ -87,7 +91,6 @@ class SignInWithKlarna {
 	public function width_constrained_button() {
 		$this->output_button( 'width: 100%; max-width: 100%;' );
 	}
-
 
 	/**
 	 * Enqueue scripts.
@@ -108,7 +111,7 @@ class SignInWithKlarna {
 		}
 
 		// 'siwk_script' MUST BE registered before Klarna's lib.js
-		$script_path = plugin_dir_url( __FILE__ ) . 'assets/siwk.js';
+		$script_path = plugin_dir_url( __FILE__ ) . 'assets/js/siwk.js';
 		wp_register_script( 'siwk_script', $script_path, array(), SIWK_VERSION, false );
 		$siwk_params = array(
 			'sign_in_from_popup_url'   => \WC_AJAX::get_endpoint( 'siwk_sign_in_from_popup' ),
@@ -121,6 +124,16 @@ class SignInWithKlarna {
 
 		// Add data- attributes to the script tag.
 		add_action( 'script_loader_tag', array( $this, 'siwk_script_tag' ), 10, 2 );
+	}
+
+	/**
+	 * Enqueue admin scripts.
+	 *
+	 * @return void
+	 */
+	public function admin_enqueue_scripts() {
+		$path = plugin_dir_url( __FILE__ ) . 'assets/css/admin-siwk.css';
+		wp_enqueue_style( 'siwk_admin_css', $path, array(), SIWK_VERSION );
 	}
 
 
@@ -164,13 +177,13 @@ class SignInWithKlarna {
 	}
 
 	/**
-	 * Get the attributes for the Klarna button.
+	 * Get the attributes for the Sign in with Klarna button.
 	 *
 	 * @return string
 	 */
 	private function get_attributes() {
 		$locale      = esc_attr( $this->settings->locale );
-		$scope       = esc_attr( $this->settings->scope );
+		$scope       = esc_attr( $this->settings->get( 'scope' ) );
 		$market      = esc_attr( apply_filters( 'siwk_market', $this->settings->market ) );
 		$environment = esc_attr( apply_filters( 'siwk_environment', wc_string_to_bool( $this->settings->get( 'test_mode' ) ) ? 'playground' : 'production' ) );
 		$client_id   = esc_attr( apply_filters( 'siwk_client_id', $this->settings->get( 'client_id' ) ) );
