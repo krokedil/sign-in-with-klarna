@@ -258,7 +258,7 @@ class Settings {
 					'title'   => 'Request Additional Customer Data',
 					'type'    => 'checkbox',
 					'label'   => __( 'Date of birth', 'siwk' ),
-					'default' => 'yes',
+					'default' => 'no',
 				),
 				'siwk_optional_scopes_country'         => array(
 					'name'    => 'siwk_optional_scopes_country',
