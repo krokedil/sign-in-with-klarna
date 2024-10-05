@@ -163,7 +163,7 @@ class Settings {
 					'type'              => 'text',
 					'description'       => __( 'Add this URL to your list of allowed redirect URLs in the "Sign in with Klarna" settings on the <a href="https://portal.klarna.com/">Klarna merchant portal</a>.', 'siwk' ),
 					'default'           => Redirect::get_callback_url(),
-					'css'               => 'width: ' . strlen( Redirect::get_callback_url() ) . 'ch; color: #2c3338',
+					'css'               => 'min-width: 100%',
 					'custom_attributes' => array(
 						'readonly' => 'readonly',
 					),

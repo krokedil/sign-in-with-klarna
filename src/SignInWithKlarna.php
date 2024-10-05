@@ -77,7 +77,7 @@ class SignInWithKlarna {
 		// Enqueue library and SDK.
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 
-		// Enqueue settings page styles.
+		// Enqueue settings page styles and scripts.
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 	}
 
@@ -112,7 +112,7 @@ class SignInWithKlarna {
 
 		// 'siwk_script' MUST BE registered before Klarna's lib.js
 		$script_path = plugin_dir_url( __FILE__ ) . 'assets/js/siwk.js';
-		wp_register_script( 'siwk_script', $script_path, array(), SIWK_VERSION, false );
+		wp_register_script( 'siwk_script', $script_path, array( 'jquery' ), SIWK_VERSION, false );
 		$siwk_params = array(
 			'sign_in_from_popup_url'   => \WC_AJAX::get_endpoint( 'siwk_sign_in_from_popup' ),
 			'sign_in_from_popup_nonce' => wp_create_nonce( 'siwk_sign_in_from_popup' ),
@@ -129,11 +129,24 @@ class SignInWithKlarna {
 	/**
 	 * Enqueue admin scripts.
 	 *
+	 * @param string $hook The current admin page.
 	 * @return void
 	 */
-	public function admin_enqueue_scripts() {
+	public function admin_enqueue_scripts( $hook ) {
+		if ( 'woocommerce_page_wc-settings' !== $hook ) {
+			return;
+		}
+
+		$section = filter_input( INPUT_GET, 'section', FILTER_SANITIZE_SPECIAL_CHARS );
+		if ( empty( $section ) || 'klarna_payments' !== $section ) {
+			return;
+		}
+
 		$path = plugin_dir_url( __FILE__ ) . 'assets/css/admin-siwk.css';
 		wp_enqueue_style( 'siwk_admin_css', $path, array(), SIWK_VERSION );
+
+		$script_path = plugin_dir_url( __FILE__ ) . 'assets/js/admin-siwk.js';
+		wp_enqueue_script( 'siwk_admin_script', $script_path, array( 'jquery' ), SIWK_VERSION, false );
 	}
 
 
