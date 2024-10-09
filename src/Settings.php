@@ -284,6 +284,15 @@ class Settings {
 					'default' => 'no',
 					'class'   => 'siwk',
 				),
+				'siwk_previews'                        => array(
+					'type'     => 'kp_section_end',
+					'previews' => array(
+						array(
+							'title' => __( 'Preview', 'siwk' ),
+							'image' => 'https://docs.klarna.com/assets/media/ZrH8wUaF0TcGItiA/thumb/SigninwithKlarna%403x.png',
+						),
+					),
+				),
 			)
 		);
 	}
