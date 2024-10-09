@@ -109,8 +109,8 @@ class Settings {
 	public function get( $setting ) {
 		$setting = str_replace( 'siwk_', '', $setting );
 		if ( 'scope' === $setting ) {
-			// These three scopes are required for full functionality and shouldn't be modified by the merchant, and must be excluded from the filter.
-			$required = 'openid offline_access customer:login ';
+			// These scopes are required for full functionality and shouldn't be modified by the merchant, and must be excluded from the filter.
+			$required = 'openid offline_access customer:login profile:billing_address';
 			return $required . apply_filters( "siwk_{$setting}", implode( ' ', array_keys( array_filter( $this->scope ) ) ) );
 		}
 
@@ -245,8 +245,18 @@ class Settings {
 					'name'              => 'siwk_required_scopes_phone',
 					'type'              => 'checkbox',
 					'label'             => __( 'Phone number', 'siwk' ),
-					'description'       => __( 'These scopes are included by default, as necessary for creating a WooCommerce customer account in your shop.  More about available scopes with Sign in with Klarna <a href="https://docs.klarna.com/conversion-boosters/sign-in-with-klarna/integrate-sign-in-with-klarna/web-sdk-integration/#scopes-and-claims">here</a>. Additional scopes can be customized if applicable, more info <a href="https://gist.github.com/mntzrr/4bf23ca394109d40575f2abc05811ddc">here</a>.', 'siwk' ),
 					'default'           => 'yes',
+					'disabled'          => true,
+					'class'             => 'siwk',
+					'custom_attributes' => array(
+						'checked' => 'true',
+					),
+				),
+				'siwk_required_scopes_billing_address' => array(
+					'name'              => 'siwk_required_scopes_billing_address',
+					'type'              => 'checkbox',
+					'label'             => __( 'Billing address', 'siwk' ),
+					'description'       => __( 'These scopes are included by default, as necessary for creating a WooCommerce customer account in your shop.  More about available scopes with Sign in with Klarna <a href="https://docs.klarna.com/conversion-boosters/sign-in-with-klarna/integrate-sign-in-with-klarna/web-sdk-integration/#scopes-and-claims">here</a>. Additional scopes can be customized if applicable, more info <a href="https://gist.github.com/mntzrr/4bf23ca394109d40575f2abc05811ddc">here</a>.', 'siwk' ),
 					'disabled'          => true,
 					'class'             => 'siwk',
 					'custom_attributes' => array(
@@ -264,13 +274,6 @@ class Settings {
 					'name'    => 'siwk_optional_scopes_country',
 					'type'    => 'checkbox',
 					'label'   => __( 'Country', 'siwk' ),
-					'default' => 'no',
-					'class'   => 'siwk',
-				),
-				'siwk_optional_scopes_billing_address' => array(
-					'name'    => 'siwk_optional_scopes_billing_address',
-					'type'    => 'checkbox',
-					'label'   => __( 'Billing address', 'siwk' ),
 					'default' => 'no',
 					'class'   => 'siwk',
 				),
@@ -325,13 +328,12 @@ class Settings {
 
 		// The array keys match the name of the scopes they define.
 		$this->scope = array(
-			'profile:name'            => wc_string_to_bool( $settings['siwk_required_scopes_name'] ),
-			'profile:email'           => wc_string_to_bool( $settings['siwk_required_scopes_email'] ),
-			'profile:phone'           => wc_string_to_bool( $settings['siwk_required_scopes_phone'] ),
-			'profile:billing_address' => wc_string_to_bool( $settings['siwk_optional_scopes_billing_address'] ),
-			'profile:language'        => wc_string_to_bool( $settings['siwk_optional_scopes_language'] ),
-			'profile:country'         => wc_string_to_bool( $settings['siwk_optional_scopes_country'] ),
-			'profile:date_of_birth'   => wc_string_to_bool( $settings['siwk_optional_scopes_date_of_birth'] ),
+			'profile:name'          => wc_string_to_bool( $settings['siwk_required_scopes_name'] ),
+			'profile:email'         => wc_string_to_bool( $settings['siwk_required_scopes_email'] ),
+			'profile:phone'         => wc_string_to_bool( $settings['siwk_required_scopes_phone'] ),
+			'profile:language'      => wc_string_to_bool( $settings['siwk_optional_scopes_language'] ),
+			'profile:country'       => wc_string_to_bool( $settings['siwk_optional_scopes_country'] ),
+			'profile:date_of_birth' => wc_string_to_bool( $settings['siwk_optional_scopes_date_of_birth'] ),
 		);
 	}
 
