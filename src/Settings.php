@@ -188,9 +188,9 @@ class Settings {
 					'description' => __( 'The button\'s shape.', 'siwk' ),
 					'default'     => $this->default()['siwk_button_shape'],
 					'options'     => array(
-						'rounded'   => __( 'Rounded', 'siwk' ),
-						'rectangle' => __( 'Rectangular', 'siwk' ),
-						'pill'      => __( 'Pill', 'siwk' ),
+						'default'     => __( 'Rounded', 'siwk' ),
+						'rectangular' => __( 'Rectangular', 'siwk' ),
+						'pill'        => __( 'Pill', 'siwk' ),
 					),
 					'desc_tip'    => true,
 				),
@@ -201,9 +201,9 @@ class Settings {
 					'description' => __( 'Change alignment of the Klarna logo on the call to action button.', 'siwk' ),
 					'default'     => $this->default()['siwk_logo_alignment'],
 					'options'     => array(
-						'default' => __( 'Badge', 'siwk' ),
-						'left'    => __( 'Left', 'siwk' ),
-						'center'  => __( 'Centered', 'siwk' ),
+						'default'  => __( 'Badge', 'siwk' ),
+						'left'     => __( 'Left', 'siwk' ),
+						'centered' => __( 'Centered', 'siwk' ),
 					),
 					'desc_tip'    => true,
 				),
@@ -289,7 +289,7 @@ class Settings {
 					'previews' => array(
 						array(
 							'title' => __( 'Preview', 'siwk' ),
-							'image' => 'https://docs.klarna.com/assets/media/ZrH8wUaF0TcGItiA/thumb/SigninwithKlarna%403x.png',
+							'image' => $this->get_preview_image(),
 						),
 					),
 				),
@@ -314,6 +314,19 @@ class Settings {
 		}
 
 		return $settings[ "{$prefix}client_id_{$country}" ] ?? '';
+	}
+
+	/**
+	 * Get the preview image URL for the "Sign in with Klarna" button.
+	 *
+	 * @return string The preview image url.
+	 */
+	private function get_preview_image() {
+		$theme     = $this->button_theme;
+		$shape     = $this->button_shape;
+		$alignment = $this->logo_alignment;
+
+		return plugin_dir_url( __FILE__ ) . "assets/img/preview-{$shape}_shape-{$theme}_theme-{$alignment}_alignment.png";
 	}
 
 	/**
@@ -358,7 +371,7 @@ class Settings {
 			'siwk_test_mode'      => 'no',
 			'siwk_title_theme'    => __( 'Theme, button shape & placements', 'siwk' ),
 			'siwk_button_theme'   => 'default',
-			'siwk_button_shape'   => 'rounded',
+			'siwk_button_shape'   => 'default',
 			'siwk_logo_alignment' => 'default',
 			'siwk_cart_placement' => 10,
 			'siwk_callback_url'   => Redirect::get_callback_url(),
