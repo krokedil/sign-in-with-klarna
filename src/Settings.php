@@ -117,17 +117,6 @@ class Settings {
 		return apply_filters( "siwk_{$setting}", $this->{$setting} );
 	}
 
-	/**
-	 * Update all the internal settings.
-	 *
-	 * @param array $settings The settings to extract from, or pass an array to use the option (if it was set).
-	 * @return void
-	 */
-	public function update( $settings ) {
-		if ( ! empty( $settings ) ) {
-			$this->store( $settings );
-		}
-	}
 
 	/**
 	 * Extend your plugin with the required SIWK settings.
@@ -335,7 +324,7 @@ class Settings {
 	 * @param array $settings The settings to extract from.
 	 * @return void
 	 */
-	private function store( $settings ) {
+	private function update( $settings ) {
 		$default = $this->default();
 
 		$this->test_mode      = $settings['testmode'] ?? $default['siwk_test_mode'];
