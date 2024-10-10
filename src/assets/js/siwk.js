@@ -1,33 +1,34 @@
-if (siwk_params !== undefined) {
-  window.KlarnaSDKCallback = function (klarna) {
-    klarna.Identity.on("signin", async (response) => {
-      const { user_account_linking } = response;
-      const { user_account_linking_id_token: id_token, user_account_linking_refresh_token: refresh_token } = user_account_linking;
+if ( siwk_params !== undefined ) {
+    window.KlarnaSDKCallback = function ( klarna ) {
+        klarna.Identity.on( "signin", async ( response ) => {
+            const { user_account_linking } = response
+            const { user_account_linking_id_token: id_token, user_account_linking_refresh_token: refresh_token } =
+                user_account_linking
 
-      jQuery.ajax({
-        type: 'POST',
-        url: siwk_params.sign_in_from_popup_url,
-        data: {
-          id_token,
-          refresh_token,
-          nonce: siwk_params.sign_in_from_popup_nonce
-        },
-        success: data => {
-          if (data.success) {
-            // Woo will sign-in the user, reload the page.
-            location.reload();
-          } else {
-            console.warn('siwk sign-in failed', data);
-          }
-        },
-        error: error => {
-          console.warn('siwk sign-in error', error);
-        }
-      })
-    });
+            jQuery.ajax( {
+                type: "POST",
+                url: siwk_params.sign_in_from_popup_url,
+                data: {
+                    id_token,
+                    refresh_token,
+                    nonce: siwk_params.sign_in_from_popup_nonce,
+                },
+                success: ( data ) => {
+                    if ( data.success ) {
+                        // Woo will sign-in the user, reload the page.
+                        location.reload()
+                    } else {
+                        console.warn( "siwk sign-in failed", data )
+                    }
+                },
+                error: ( error ) => {
+                    console.warn( "siwk sign-in error", error )
+                },
+            } )
+        } )
 
-    klarna.Identity.on("error", async (error) => {
-      console.warn('siwk error', error);
-    });
-  }
+        klarna.Identity.on( "error", async ( error ) => {
+            console.warn( "siwk error", error )
+        } )
+    }
 }
