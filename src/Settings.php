@@ -139,7 +139,7 @@ class Settings {
 		return array_merge(
 			$settings,
 			array(
-				'siwk_title'                           => array(
+				'siwk'                                 => array(
 					'title'       => __( 'Sign in with Klarna', 'siwk' ),
 					'description' => __( 'An improved way to drive shoppers straight to the checkout, with all their preferences already set.', 'siwk' ),
 					'links'       => array(

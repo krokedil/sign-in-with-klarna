@@ -31,7 +31,31 @@ jQuery( ( $ ) => {
         } )
     }
 
+    const getImgUrl = () => {
+        const theme = $( "#woocommerce_klarna_payments_siwk_button_theme" ).val()
+        const shape = $( "#woocommerce_klarna_payments_siwk_button_shape" ).val()
+        const alignment = $( "#woocommerce_klarna_payments_siwk_logo_alignment" ).val()
+
+        const img = $( "#klarna-payments-settings-siwk .kp_settings__section_previews img" )
+        img.attr(
+            "src",
+            img
+                .attr( "src" )
+                .replace(
+                    /preview-(.*).png/,
+                    `preview-${ shape }_shape-${ theme }_theme-${ alignment }_alignment.png`,
+                ),
+        )
+    }
+
     $( document ).ready( () => {
         copyToClipboard()
+
+        // Update the preview image when the select changes.
+        $( document ).on(
+            "change",
+            "#woocommerce_klarna_payments_siwk_button_theme, #woocommerce_klarna_payments_siwk_button_shape, #woocommerce_klarna_payments_siwk_logo_alignment",
+            getImgUrl,
+        )
     } )
 } )
