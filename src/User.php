@@ -206,7 +206,6 @@ class User {
 	 * @return array An userdata array to be consumed by wp_insert_user.
 	 */
 	public function get_user_data( $id_token, $refresh_token ) {
-		// The following fields are optional, and must have a default value.
 		$id_token = wp_parse_args(
 			$id_token,
 			array(
@@ -220,8 +219,8 @@ class User {
 			'user_login'  => sanitize_user( $id_token['email'] ),
 			'user_pass'   => wp_generate_password(),
 			'user_email'  => sanitize_email( $id_token['email'] ),
-			'first_name'  => sanitize_text_field( $id_token['given_name'] ?? '' ),
-			'last_name'   => sanitize_text_field( $id_token['family_name'] ?? '' ),
+			'first_name'  => sanitize_text_field( $id_token['given_name'] ),
+			'last_name'   => sanitize_text_field( $id_token['family_name'] ),
 			'description' => __( 'Sign in with Klarna', 'siwk' ),
 			'locale'      => $id_token['locale'],
 		);
