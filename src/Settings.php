@@ -293,7 +293,12 @@ class Settings {
 	 * @return string The client ID or empty string.
 	 */
 	private function get_client_id( $settings ) {
-		$country     = strtolower( kp_get_klarna_country() );
+		$country             = strtolower( kp_get_klarna_country() );
+		$available_countries = $settings['available_countries'] ?? array();
+		if ( ! in_array( $country, $available_countries, true ) ) {
+			return '';
+		}
+
 		$test_mode   = wc_string_to_bool( $this->test_mode );
 		$combined_eu = wc_string_to_bool( $settings['combine_eu_credentials'] ?? 'no' );
 
