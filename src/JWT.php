@@ -147,7 +147,7 @@ class JWT {
 				),
 				'body'    => array(
 					'refresh_token' => $refresh_token,
-					'client_id'     => $this->settings->client_id,
+					'client_id'     => $this->settings->get( 'client_id' ),
 					'grant_type'    => 'refresh_token',
 				),
 			)

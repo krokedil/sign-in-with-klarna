@@ -64,7 +64,7 @@ class Redirect {
 		} else {
 			header( 'Content-Type: text/html' );
 			$client_id = $this->settings->get( 'client_id' );
-			$locale    = $this->settings->locale;
+			$locale    = $this->settings->get( 'locale' );
 
 			// The Klarna SDK will not run any event if the redirect_uri differs from the pre-registered URL. Therefore, we cannot redirect the user to the callback.html page. Instead, we must echo the contents of the file. And since we cannot add any query parameters, we must use template strings to add the client ID and the locale.
 			$body = str_replace( '%client_id%', $client_id, $body );

@@ -15,35 +15,35 @@ class Settings {
 	 *
 	 * @var string
 	 */
-	public $client_id;
+	private $client_id;
 
 	/**
 	 * The market or the country where this integration is available.
 	 *
 	 * @var string
 	 */
-	public $market;
+	private $market;
 	/**
 	 * The environment to which the integration is pointing: playground or production.
 	 *
 	 * @var string 'yes' or 'no'.
 	 */
 
-	public $test_mode;
+	private $test_mode;
 
 	/**
 	 * The button's color theme.
 	 *
 	 * @var string
 	 */
-	public $button_theme;
+	private $button_theme;
 
 	/**
 	 * The button's shape.
 	 *
 	 * @var string
 	 */
-	public $button_shape;
+	private $button_shape;
 
 	/**
 	 * Change alignment of the Klarna logo on the call to action button based on the provided configuration.
@@ -56,21 +56,21 @@ class Settings {
 	 *
 	 * @var string
 	 */
-	public $logo_alignment;
+	private $logo_alignment;
 
 	/**
 	 * Change the position of the button on the cart page.
 	 *
 	 * @var int
 	 */
-	public $cart_placement;
+	private $cart_placement;
 
 	/**
 	 * The locale.
 	 *
 	 * @var string
 	 */
-	public $locale;
+	private $locale;
 
 
 	/**
@@ -298,7 +298,6 @@ class Settings {
 		$combined_eu = wc_string_to_bool( $settings['combine_eu_credentials'] ?? 'no' );
 
 		$prefix = $test_mode ? 'test_' : '';
-		if ( $combined_eu ) {
 		if ( $combined_eu && key_exists( $country, \KP_Form_Fields::available_countries( 'eu' ) ) ) {
 			return $settings[ "{$prefix}client_id_eu" ] ?? '';
 		}

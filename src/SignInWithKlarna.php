@@ -62,7 +62,7 @@ class SignInWithKlarna {
 	 */
 	public function __construct( $settings ) {
 		$this->settings = new Settings( $settings );
-		$this->jwt      = new JWT( wc_string_to_bool( $this->settings->test_mode ), $this->settings );
+		$this->jwt      = new JWT( wc_string_to_bool( $this->settings->get( 'test_mode' ) ), $this->settings );
 		$this->user     = new User( $this->jwt );
 		$this->ajax     = new AJAX( $this->jwt, $this->user );
 
@@ -70,7 +70,7 @@ class SignInWithKlarna {
 		new Redirect( $this->settings );
 
 		// Frontend hooks.
-		add_action( 'woocommerce_proceed_to_checkout', array( $this, self::$placement_hook ), intval( $this->settings->cart_placement ) );
+		add_action( 'woocommerce_proceed_to_checkout', array( $this, self::$placement_hook ), intval( $this->settings->get( 'cart_placement' ) ) );
 		add_action( 'woocommerce_login_form_start', array( $this, self::$placement_hook ) );
 		add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'width_constrained_button' ), 5 );
 
@@ -195,9 +195,9 @@ class SignInWithKlarna {
 	 * @return string
 	 */
 	private function get_attributes() {
-		$locale      = esc_attr( $this->settings->locale );
+		$locale      = esc_attr( $this->settings->get( 'locale' ) );
 		$scope       = esc_attr( $this->settings->get( 'scope' ) );
-		$market      = esc_attr( apply_filters( 'siwk_market', $this->settings->market ) );
+		$market      = esc_attr( apply_filters( 'siwk_market', $this->settings->get( 'market' ) ) );
 		$environment = esc_attr( apply_filters( 'siwk_environment', wc_string_to_bool( $this->settings->get( 'test_mode' ) ) ? 'playground' : 'production' ) );
 		$client_id   = esc_attr( apply_filters( 'siwk_client_id', $this->settings->get( 'client_id' ) ) );
 		$redirect_to = esc_attr( Redirect::get_callback_url() );
