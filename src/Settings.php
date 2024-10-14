@@ -299,6 +299,7 @@ class Settings {
 
 		$prefix = $test_mode ? 'test_' : '';
 		if ( $combined_eu ) {
+		if ( $combined_eu && key_exists( $country, \KP_Form_Fields::available_countries( 'eu' ) ) ) {
 			return $settings[ "{$prefix}client_id_eu" ] ?? '';
 		}
 
