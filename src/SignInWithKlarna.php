@@ -186,7 +186,7 @@ class SignInWithKlarna {
 		$attributes = apply_filters( 'siwk_button_attributes', $attributes );
 
 		// phpcs:ignore -- must be echoed as html; attributes already escaped.
-		echo "<klarna-identity-button id='klarna-identity-button' $attributes></klarna-identity-button>";
+		echo "<klarna-identity-button id='klarna-identity-button' class='siwk-button' $attributes></klarna-identity-button>";
 	}
 
 	/**
