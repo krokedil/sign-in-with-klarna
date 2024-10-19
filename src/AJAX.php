@@ -101,7 +101,7 @@ class AJAX {
 		wp_send_json_success(
 			array(
 				'user_id'  => $user_id,
-				'redirect' => apply_filters( 'siwk_redirect_url', get_permalink( wc_get_page_id( $page ) ) ),
+				'redirect' => apply_filters( 'siwk_redirect_url', get_permalink( wc_get_page_id( $page ) ), $page ),
 			)
 		);
 	}

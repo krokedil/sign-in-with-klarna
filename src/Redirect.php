@@ -58,7 +58,8 @@ class Redirect {
 		$response = wp_remote_get( plugin_dir_url( __FILE__ ) . 'templates/callback.html' );
 		$body     = wp_remote_retrieve_body( $response );
 
-		$redirect_url = apply_filters( 'siwk_redirect_url', get_permalink( wc_get_page_id( 'shop' ) ) );
+		$page         = null;
+		$redirect_url = apply_filters( 'siwk_redirect_url', get_permalink( wc_get_page_id( 'shop' ) ), $page );
 		if ( empty( $body ) ) {
 			wp_safe_redirect( $redirect_url );
 		} else {
