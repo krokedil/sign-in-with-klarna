@@ -178,10 +178,8 @@ class SignInWithKlarna {
 			return;
 		}
 
-		$attributes = $this->get_attributes();
-		if ( ! empty( $style ) ) {
-			$attributes .= " style='" . esc_attr( $style ) . "'";
-		}
+		$style      = 'width: 100%; max-width: 100%;' . ( ! empty( $style ) ? " {$style}" : '' );
+		$attributes = $this->get_attributes() . " style='" . esc_attr( $style ) . "'";
 
 		$attributes = apply_filters( 'siwk_button_attributes', $attributes );
 
