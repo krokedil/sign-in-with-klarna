@@ -9,6 +9,7 @@ if ( siwk_params !== undefined ) {
                 type: "POST",
                 url: siwk_params.sign_in_from_popup_url,
                 data: {
+                    url: window.location.href,
                     id_token,
                     refresh_token,
                     nonce: siwk_params.sign_in_from_popup_nonce,

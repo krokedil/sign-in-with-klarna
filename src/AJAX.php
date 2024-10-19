@@ -95,10 +95,13 @@ class AJAX {
 			$this->user->set_tokens( $user_id, $tokens, $refresh_token );
 		}
 
+		// phpcs:ignore -- Nonce is checked by calling function.
+		$url  = wc_get_var( $_POST['url'] );
+		$page = strpos( wc_get_cart_url(), $url ) !== false ? 'cart' : 'shop';
 		wp_send_json_success(
 			array(
 				'user_id'  => $user_id,
-				'redirect' => apply_filters( 'siwk_redirect_url', get_permalink( wc_get_page_id( 'shop' ) ) ),
+				'redirect' => apply_filters( 'siwk_redirect_url', get_permalink( wc_get_page_id( $page ) ) ),
 			)
 		);
 	}
