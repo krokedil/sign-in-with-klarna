@@ -72,24 +72,13 @@ class SignInWithKlarna {
 		// Frontend hooks.
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, self::$placement_hook ), intval( $this->settings->get( 'cart_placement' ) ) );
 		add_action( 'woocommerce_login_form_start', array( $this, self::$placement_hook ) );
-		add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'width_constrained_button' ), 5 );
+		add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'output_button' ), 5 );
 
 		// Enqueue library and SDK.
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 
 		// Enqueue settings page styles and scripts.
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
-	}
-
-	/**
-	 * Outputs the button with a width and max-width 100% constrain.
-	 *
-	 * Used in the mini-cart.
-	 *
-	 * @return void
-	 */
-	public function width_constrained_button() {
-		$this->output_button( 'width: 100%; max-width: 100%;' );
 	}
 
 	/**
