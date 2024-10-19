@@ -70,7 +70,7 @@ class Redirect {
 			$body = str_replace( '%client_id%', $client_id, $body );
 			$body = str_replace( '%locale%', $locale, $body );
 
-			// Show a link back to the account page in case the sign in fails.
+			// Show a link back to the shop page in case the sign in fails.
 			$body = str_replace( '%store_url%', $redirect_url, $body );
 
 			// The AJAX URL.

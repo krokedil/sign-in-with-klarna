@@ -95,7 +95,12 @@ class AJAX {
 			$this->user->set_tokens( $user_id, $tokens, $refresh_token );
 		}
 
-		wp_send_json_success( array( 'user_id' => $user_id ) );
+		wp_send_json_success(
+			array(
+				'user_id'  => $user_id,
+				'redirect' => apply_filters( 'siwk_redirect_url', get_permalink( wc_get_page_id( 'shop' ) ) ),
+			)
+		);
 	}
 
 	/**

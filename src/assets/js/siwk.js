@@ -14,9 +14,9 @@ if ( siwk_params !== undefined ) {
                     nonce: siwk_params.sign_in_from_popup_nonce,
                 },
                 success: ( data ) => {
-                    if ( data.success ) {
-                        // Woo will sign-in the user, reload the page.
-                        location.reload()
+                    if (data.success) {
+                        const { redirect } = data.data
+                        window.location = redirect
                     } else {
                         console.warn( "siwk sign-in failed", data )
                     }
