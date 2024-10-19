@@ -181,7 +181,7 @@ class SignInWithKlarna {
 		$client_id   = esc_attr( apply_filters( 'siwk_client_id', $this->settings->get( 'client_id' ) ) );
 		$redirect_to = esc_attr( Redirect::get_callback_url() );
 
-		return "data-locale='{$locale}' data-scope='{$scope}' data-market='{$market}' data-environment='{$environment}' data-client-id='{$client_id}' data-redirect-uri='{$redirect_to}' data-client-instance-name='siwk'";
+		return "data-locale='{$locale}' data-scope='{$scope}' data-market='{$market}' data-environment='{$environment}' data-client-id='{$client_id}' data-redirect-uri='{$redirect_to}'";
 	}
 
 	/**
