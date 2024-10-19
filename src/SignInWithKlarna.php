@@ -69,13 +69,15 @@ class SignInWithKlarna {
 		// Initialize the callback endpoint for handling the redirect flow.
 		new Redirect( $this->settings );
 
-		// Frontend hooks.
-		add_action( 'woocommerce_proceed_to_checkout', array( $this, self::$placement_hook ), intval( $this->settings->get( 'cart_placement' ) ) );
-		add_action( 'woocommerce_login_form_start', array( $this, self::$placement_hook ) );
-		add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'output_button' ), 5 );
+		if ( $this->should_display() ) {
+			// Frontend hooks.
+			add_action( 'woocommerce_proceed_to_checkout', array( $this, self::$placement_hook ), intval( $this->settings->get( 'cart_placement' ) ) );
+			add_action( 'woocommerce_login_form_start', array( $this, self::$placement_hook ) );
+			add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'output_button' ), 5 );
 
-		// Enqueue library and SDK.
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+			// Enqueue library and SDK.
+			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		}
 
 		// Enqueue settings page styles and scripts.
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
@@ -89,16 +91,6 @@ class SignInWithKlarna {
 	 * @return void
 	 */
 	public function enqueue_scripts() {
-		/**
-		 * Check if we need to display the SIWK button:
-		 * 1. if logged in or guest but has not signed in with klarna.
-		 * 2. signed in, but need to renew the refresh token.
-		 */
-		$show_button = empty( get_user_meta( get_current_user_id(), User::REFRESH_TOKEN_KEY, true ) );
-		if ( ! $show_button ) {
-			return;
-		}
-
 		// 'siwk_script' MUST BE registered before Klarna's lib.js
 		$script_path = plugin_dir_url( __FILE__ ) . 'assets/js/siwk.js';
 		wp_register_script( 'siwk_script', $script_path, array( 'jquery' ), SIWK_VERSION, false );
@@ -190,5 +182,19 @@ class SignInWithKlarna {
 		$redirect_to = esc_attr( Redirect::get_callback_url() );
 
 		return "data-locale='{$locale}' data-scope='{$scope}' data-market='{$market}' data-environment='{$environment}' data-client-id='{$client_id}' data-redirect-uri='{$redirect_to}'";
+	}
+
+	/**
+	 * Determine whether the button should be displayed.
+	 *
+	 * @return bool
+	 */
+	private function should_display() {
+		/**
+		 * Check if we need to display the SIWK button:
+		 * 1. if logged in or guest but has not signed in with klarna.
+		 * 2. signed in, but need to renew the refresh token.
+		 */
+		return empty( get_user_meta( get_current_user_id(), User::REFRESH_TOKEN_KEY, true ) );
 	}
 }
