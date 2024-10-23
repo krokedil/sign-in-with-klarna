@@ -25,7 +25,7 @@ class SignInWithKlarna {
 	 *
 	 * @var string
 	 */
-	public static $placement_hook = 'output_button';
+	public static $placement_hook = 'siwk_output_button';
 
 	/**
 	 * The internal settings state.
