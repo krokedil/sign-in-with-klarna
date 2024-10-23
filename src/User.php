@@ -173,6 +173,20 @@ class User {
 		// Add the retrieved user ID to the userdata so that Woo knows which user to update.
 		$userdata['ID'] = $user->ID;
 
+		// Since we only receive the billing address from Klarna, we use it as the shipping address too. However, if these fields are already set in the existing user's metadata, and are non-empty, we don't want to overwrite them.
+		$userdata['meta_input'] = array_filter(
+			$userdata['meta_input'],
+			function ( $key ) use ( $user ) {
+				$is_shipping = strpos( $key, 'shipping_' ) === 0;
+				if ( $is_shipping && ! empty( get_user_meta( $user->ID, $key, true ) ) ) {
+					return false;
+				}
+
+				return true;
+			},
+			ARRAY_FILTER_USE_KEY
+		);
+
 		$user_id = wp_update_user( $userdata );
 		if ( is_wp_error( $user_id ) ) {
 			return $user_id;
