@@ -73,7 +73,7 @@ class SignInWithKlarna {
 			// Frontend hooks.
 			add_action( 'woocommerce_proceed_to_checkout', array( $this, self::$placement_hook ), intval( $this->settings->get( 'cart_placement' ) ) );
 			add_action( 'woocommerce_login_form_start', array( $this, self::$placement_hook ) );
-			add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'output_button' ), 5 );
+			add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'siwk_output_button' ), 5 );
 
 			// Enqueue library and SDK.
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
@@ -153,7 +153,7 @@ class SignInWithKlarna {
 	 * @param string $style The CSS style to apply to the button.
 	 * @return void
 	 */
-	public function output_button( $style = '' ) {
+	public function siwk_output_button( $style = '' ) {
 		// Only run this function ONCE PER ACTION to prevent duplicate buttons. First time it is run, did_action will return 0. A non-zero value means it has already been run.
 		if ( did_action( self::$placement_hook ) ) {
 			return;
