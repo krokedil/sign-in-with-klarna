@@ -96,7 +96,7 @@ class AJAX {
 		}
 
 		// phpcs:ignore -- Nonce is checked by calling function.
-		$url  = wc_get_var( $_POST['url'] );
+		$url  = sanitize_url( wc_get_var( $_POST['url'], '' ) );
 		$page = strpos( wc_get_cart_url(), $url ) !== false ? 'cart' : 'shop';
 		wp_send_json_success(
 			array(
