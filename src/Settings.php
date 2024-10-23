@@ -287,30 +287,6 @@ class Settings {
 	}
 
 	/**
-	 * Retrieve the client ID from the Klarna plugin settings.
-	 *
-	 * @param array $settings The settings to extract from.
-	 * @return string The client ID or empty string.
-	 */
-	private function get_client_id( $settings ) {
-		$country             = strtolower( kp_get_klarna_country() );
-		$available_countries = $settings['available_countries'] ?? array();
-		if ( ! in_array( $country, $available_countries, true ) ) {
-			return '';
-		}
-
-		$test_mode   = wc_string_to_bool( $this->test_mode );
-		$combined_eu = wc_string_to_bool( $settings['combine_eu_credentials'] ?? 'no' );
-
-		$prefix = $test_mode ? 'test_' : '';
-		if ( $combined_eu && key_exists( $country, \KP_Form_Fields::available_countries( 'eu' ) ) ) {
-			return $settings[ "{$prefix}client_id_eu" ] ?? '';
-		}
-
-		return $settings[ "{$prefix}client_id_{$country}" ] ?? '';
-	}
-
-	/**
 	 * Get the preview image URL for the "Sign in with Klarna" button.
 	 *
 	 * @return string The preview image url.
@@ -337,8 +313,8 @@ class Settings {
 		$this->button_shape   = $settings['siwk_button_shape'];
 		$this->logo_alignment = $settings['siwk_logo_alignment'];
 		$this->cart_placement = $settings['siwk_cart_placement'];
-		$this->client_id      = $this->get_client_id( $settings );
 		$this->market         = kp_get_klarna_country();
+		$this->client_id      = kp_get_client_id( $this->market );
 
 		$this->locale = apply_filters( 'siwk_locale', str_replace( '_', '-', get_locale() ) );
 
