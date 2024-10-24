@@ -1,6 +1,8 @@
 <?php
 namespace Krokedil\SignInWithKlarna;
 
+use WP_Error;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -15,21 +17,14 @@ class User {
 	 *
 	 * @var string
 	 */
-	public static $refresh_token_key = 'siwk_refresh_token';
+	public const REFRESH_TOKEN_KEY = 'siwk_refresh_token';
 	/**
 	 * The meta key for access token.
 	 *
 	 * @var string
 	 */
-	public static $access_token_key = '_siwk_access_token';
+	public const TOKENS_KEY = '_siwk_tokens';
 
-
-	/**
-	 * Settings.
-	 *
-	 * @var Settings $settings
-	 */
-	private $settings;
 
 	/**
 	 * JWT interface.
@@ -41,73 +36,16 @@ class User {
 	/**
 	 * Class constructor.
 	 *
-	 * @param JWT      $jwt JWT.
-	 * @param Settings $settings Settings.
+	 * @param JWT $jwt JWT.
 	 */
-	public function __construct( $jwt, $settings ) {
-		$this->settings = $settings;
-		$this->jwt      = $jwt;
-	}
-
-	/**
-	 * Update the refresh token, and generate a new access token.
-	 *
-	 * Assumes refresh token is saved to user's metadata.
-	 *
-	 * @return bool TRUE if a new access token was set, otherwise FALSE.
-	 */
-	public function update_refresh_token() {
-		$user_id       = get_current_user_id();
-		$refresh_token = get_user_meta( $user_id, self::$refresh_token_key, true );
-
-		// We need an existing refresh token to issue a new one.
-		if ( empty( $refresh_token ) ) {
-			return false;
-		}
-
-		$region   = $this->settings->region;
-		$iss      = $refresh_token['iss'];
-		$response = wp_remote_post(
-			"{$iss}/{$region}/lp/idp/oauth2/token",
-			array(
-				'headers' => array(
-					'Content-Type' => 'application/x-www-form-urlencoded',
-				),
-				'body'    => array(
-					'refresh_token' => $refresh_token['refresh_token'],
-					'client_id'     => $refresh_token['client_id'],
-					'grant_type'    => 'refresh_token',
-				),
-			)
-		);
-
-		$code = wp_remote_retrieve_response_code( $response );
-		if ( is_wp_error( $response ) || ( $code < 200 || $code > 299 ) ) {
-			// Delete all instances of SIWK refresh token in the user's metadata.
-			// This should ensure the SIWK button should appear again on the frontend.
-			delete_user_meta( $user_id, self::$refresh_token_key );
-			return false;
-		}
-
-		$body          = json_decode( wp_remote_retrieve_body( $response ), true );
-		$refresh_token = $this->jwt->get_refresh_token( $body['access_token'], $body['id_token'], $body['refresh_token'] );
-
-		if ( is_wp_error( $refresh_token ) ) {
-
-			// Mostly likely the merchant changed environment.
-			// Delete the user meta to ensure a new refresh token is issued next time in the new environment.
-			delete_user_meta( $user_id, self::$refresh_token_key );
-			return false;
-		}
-
-		update_user_meta( $user_id, self::$refresh_token_key, $refresh_token );
-		return $this->set_access_token( $user_id, $body['access_token'], intval( $body['expires_in'] ) ?? 299 );
+	public function __construct( $jwt ) {
+		$this->jwt = $jwt;
 	}
 
 	/**
 	 * Get the access token or generate a new one if it has already expired.
 	 *
-	 * @param int $user_id The user ID.
+	 * @param int $user_id The user ID (guest = 0).
 	 * @return string|false The access token or FALSE.
 	 */
 	public function get_access_token( $user_id ) {
@@ -116,34 +54,65 @@ class User {
 			return false;
 		}
 
-		$access_token_key = $user_id . self::$access_token_key;
+		$tokens = json_decode( get_user_meta( $user_id, self::TOKENS_KEY, true ) );
+		if ( empty( $tokens ) ) {
+			return false;
+		}
 
-		// Check for existing transient.
-		$access_token = get_transient( $access_token_key );
-		if ( ! empty( $access_token ) ) {
+		// If the token is not valid or has expired, try to refresh it.
+		$access_token = $this->jwt->get_payload( $tokens['access_token'] );
+		if ( ! is_wp_error( $access_token ) && ( $tokens['expires_in'] - 30_000 ) > time() ) {
 			return $access_token;
 		}
+
 		// Check if the user has refresh token.
-		$refresh_token = get_user_meta( $user_id, self::$refresh_token_key, true );
+		$refresh_token = get_user_meta( $user_id, self::REFRESH_TOKEN_KEY, true );
 		if ( empty( $refresh_token ) ) {
 			return false;
 		}
 
 		// Update refresh token, and fetch new access token.
-		$this->update_refresh_token();
-		return get_transient( $access_token_key );
+		$tokens = $this->jwt->get_fresh_tokens( $refresh_token );
+		if ( ! is_wp_error( $tokens ) ) {
+			$this->set_tokens( $user_id, $tokens );
+
+			// Store the refresh token as-is, a JSON encoded string.
+			$this->set_refresh_token( $user_id, $tokens['refresh_token'] );
+			return $tokens['access_token'];
+		}
+
+		// Mostly likely the merchant changed environment.
+		// Delete the user meta to ensure a new refresh token is issued next time in the new environment, and to make the SIWK button appear again on the frontend.
+		delete_user_meta( $user_id, self::REFRESH_TOKEN_KEY );
+		return false;
+	}
+
+	/**
+	 * Store the Klarna tokens retrieved from the "refresh token" request to the user's metadata.
+	 *
+	 * @param int    $user_id The Woo user ID.
+	 * @param array  $tokens Klarna tokens.
+	 * @param string $refresh_token The refresh token (optional).
+	 * @return bool Whether the tokens were saved.
+	 */
+	public function set_tokens( $user_id, $tokens, $refresh_token = null ) {
+		$result = update_user_meta( $user_id, self::TOKENS_KEY, wp_json_encode( $tokens ) );
+		if ( ! empty( $refresh_token ) ) {
+			$result = $this->set_refresh_token( $user_id, $refresh_token );
+		}
+
+		return $result;
 	}
 
 	/**
 	 * Store the access token as a transient associated with user ID.
 	 *
-	 * @param int    $user_id The user to associate the access token with.
-	 * @param string $jwt_access_token JWT access token.
-	 * @param int    $expires_in How long the transient is valid (seconds).
-	 * @return bool TRUE if the access token was set, otherwise FALSE.
+	 * @param int    $user_id The Woo user ID.
+	 * @param string $refresh_token The refresh token.
+	 * @return bool Whether the refresh token were saved.
 	 */
-	public function set_access_token( $user_id, $jwt_access_token, $expires_in ) {
-		return set_transient( $user_id . self::$access_token_key, $jwt_access_token, $expires_in );
+	public function set_refresh_token( $user_id, $refresh_token ) {
+		return update_user_meta( $user_id, self::TOKENS_KEY, $refresh_token );
 	}
 
 	/**
@@ -151,15 +120,16 @@ class User {
 	 *
 	 * Also sets the selected payment method to Klarna if possible.
 	 *
-	 * @param int $user_id The user to login as.
+	 * @param int  $user_id The user to login as.
+	 * @param bool $set_gateway Whether to set Klarna Checkout or Klarna Payments (whichever has highest order) as the chosen payment method (default: false).
 	 * @return void
 	 */
-	public static function set_current_user( $user_id ) {
+	public static function set_current_user( $user_id, $set_gateway = false ) {
 		wc_set_customer_auth_cookie( $user_id );
 		wp_set_current_user( $user_id );
 
 		// Set Klarna as the selected payment method (if available).
-		if ( apply_filters( 'siwk_set_gateway_to_klarna', '__return_false' ) ) {
+		if ( apply_filters( 'siwk_set_gateway_to_klarna', $set_gateway ) ) {
 			$gateways = WC()->payment_gateways->get_available_payment_gateways();
 			foreach ( $gateways as $gateway ) {
 				if ( in_array( $gateway->id, array( 'kco', 'klarna_payments' ), true ) ) {
@@ -168,9 +138,150 @@ class User {
 					WC()->session->set( 'chosen_payment_method', $gateway->id );
 					WC()->payment_gateways->set_current_gateway( $gateway->id );
 
-					break;
+					return;
 				}
 			}
 		}
+	}
+
+	/**
+	 * Save tokens and refresh token to the user's metadata to an already logged in user.
+	 *
+	 * @param int    $user_id The user ID.
+	 * @param array  $tokens The Klarna tokens.
+	 * @param string $refresh_token The refresh token.
+	 * @return void
+	 */
+	public function sign_in_user( $user_id, $tokens, $refresh_token ) {
+		$this->set_tokens( $user_id, $tokens, $refresh_token );
+		$this->set_current_user( $user_id );
+	}
+
+	/**
+	 * Merge user data with an existing user (identified by email). Assumes the user is not already signed in.
+	 *
+	 * @param array $userdata The user data from Klarna.
+	 * @return int|WP_Error The user's ID if was successfully merged, WP_Error otherwise.
+	 */
+	public function merge_with_existing_user( $userdata ) {
+		$user = get_user_by( 'login', $userdata['user_login'] );
+		$user = ! empty( $user ) ? $user : get_user_by( 'email', $userdata['user_email'] );
+		if ( empty( $user ) ) {
+			return new WP_Error( 'user_exists', 'failed to retrieve user data' );
+		}
+
+		// Add the retrieved user ID to the userdata so that Woo knows which user to update.
+		$userdata['ID'] = $user->ID;
+
+		// Since we only receive the billing address from Klarna, we use it as the shipping address too. However, if these fields are already set in the existing user's metadata, and are non-empty, we don't want to overwrite them.
+		$userdata['meta_input'] = array_filter(
+			$userdata['meta_input'],
+			function ( $key ) use ( $user ) {
+				$is_shipping = strpos( $key, 'shipping_' ) === 0;
+				if ( $is_shipping && ! empty( get_user_meta( $user->ID, $key, true ) ) ) {
+					return false;
+				}
+
+				return true;
+			},
+			ARRAY_FILTER_USE_KEY
+		);
+
+		$user_id = wp_update_user( $userdata );
+		if ( is_wp_error( $user_id ) ) {
+			return $user_id;
+		}
+
+		do_action( 'siwk_merge_with_existing_user', $user_id, $userdata );
+		return $user_id;
+	}
+
+	/**
+	 * Register a new customer and log them in. Assumes the user is not already signed in.
+	 *
+	 * @param array $userdata The user data from Klarna.
+	 * @return int|WP_Error The new user's ID or WP_Error.
+	 */
+	public function register_new_user( $userdata ) {
+		$user_id = wp_insert_user( $userdata );
+		if ( is_wp_error( $user_id ) ) {
+			return new WP_Error( 'register_new_user', 'could not create user' );
+		}
+
+		do_action( 'woocommerce_created_customer', $user_id, $userdata, false );
+		return $user_id;
+	}
+
+	/**
+	 * Extract the user data from the ID token.
+	 *
+	 * @param string $id_token The ID token.
+	 * @param string $refresh_token The refresh token.
+	 * @return array An userdata array to be consumed by wp_insert_user.
+	 */
+	public function get_user_data( $id_token, $refresh_token ) {
+		$id_token = wp_parse_args(
+			$id_token,
+			array(
+				'locale'          => str_replace( '-', '_', get_locale() ),
+				'billing_address' => array(),
+			)
+		);
+
+		$userdata = array(
+			'role'        => 'customer',
+			'user_login'  => sanitize_user( $id_token['email'] ),
+			'user_pass'   => wp_generate_password(),
+			'user_email'  => sanitize_email( $id_token['email'] ),
+			'first_name'  => sanitize_text_field( $id_token['given_name'] ),
+			'last_name'   => sanitize_text_field( $id_token['family_name'] ),
+			'description' => __( 'Sign in with Klarna', 'siwk' ),
+			'locale'      => $id_token['locale'],
+		);
+
+		// Clean fields, and use default values to avoid undefined index.
+		$billing_address = array_map(
+			function ( $field ) {
+				if ( empty( $field ) ) {
+					return '';
+				}
+				return wc_clean( $field );
+			},
+			$id_token['billing_address']
+		);
+
+		$userdata['meta_input'] = array(
+			'billing_first_name'    => $userdata['first_name'],
+			'billing_last_name'     => $userdata['last_name'],
+			'billing_city'          => $billing_address['city'] ?? '',
+			'billing_state'         => $billing_address['region'] ?? '',
+			'billing_country'       => $billing_address['country'] ?? '',
+			'billing_postcode'      => $billing_address['postal_code'] ?? '',
+			'billing_address_1'     => $billing_address['street_address'] ?? '',
+			'billing_address_2'     => $billing_address['street_address_2'] ?? '',
+			'billing_phone'         => $id_token['phone'] ?? '',
+			'billing_email'         => $userdata['user_email'],
+			'shipping_first_name'   => $userdata['first_name'],
+			'shipping_last_name'    => $userdata['last_name'],
+			'shipping_city'         => $billing_address['city'] ?? '',
+			'shipping_country'      => $billing_address['country'] ?? '',
+			'shipping_state'        => $billing_address['region'] ?? '',
+			'shipping_postcode'     => $billing_address['postal_code'] ?? '',
+			'shipping_address_1'    => $billing_address['street_address'] ?? '',
+			'shipping_address_2'    => $billing_address['street_address_2'] ?? '',
+			'shipping_phone'        => $id_token['phone'] ?? '',
+			'shipping_email'        => $userdata['user_email'],
+			self::REFRESH_TOKEN_KEY => $refresh_token,
+		);
+
+		// Remove empty fields (based on default value).
+		$userdata['meta_input'] = array_filter(
+			$userdata['meta_input'],
+			function ( $field ) {
+				return ! empty( $field );
+			}
+		);
+
+		return apply_filters( 'siwk_userdata', $userdata );
 	}
 }

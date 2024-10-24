@@ -1,0 +1,11 @@
+{
+  "name": "sign-in-with-klarna",
+  "version": "1.0.0",
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "lint": "pnpx wp-prettier src/assets/js --paren-spacing --tab-width 4 --print-width 120 --no-semi --write"
+  },
+  "devDependencies": {
+    "wp-prettier": "^3.0.3"
+  }
+}
