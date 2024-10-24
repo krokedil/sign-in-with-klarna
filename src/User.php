@@ -13,12 +13,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class User {
 
 	/**
-	 * The meta key for refresh token.
-	 *
-	 * @var string
-	 */
-	public const REFRESH_TOKEN_KEY = 'siwk_refresh_token';
-	/**
 	 * The meta key for access token.
 	 *
 	 * @var string
@@ -54,65 +48,46 @@ class User {
 			return false;
 		}
 
-		$tokens = json_decode( get_user_meta( $user_id, self::TOKENS_KEY, true ) );
+		$tokens = get_user_meta( $user_id, self::TOKENS_KEY, true );
 		if ( empty( $tokens ) ) {
 			return false;
 		}
 
-		// If the token is not valid or has expired, try to refresh it.
-		$access_token = $this->jwt->get_payload( $tokens['access_token'] );
-		if ( ! is_wp_error( $access_token ) && ( $tokens['expires_in'] - 30_000 ) > time() ) {
-			return $access_token;
+		// We do not have to "validate the access token before using it", but we must check if it has expired. We subtract 30 seconds as a buffer.
+		$has_expired = time() > ( $tokens['expires_in'] - 30_000 );
+		if ( ! $has_expired ) {
+			return $tokens['access_token'];
 		}
 
 		// Check if the user has refresh token.
-		$refresh_token = get_user_meta( $user_id, self::REFRESH_TOKEN_KEY, true );
+		$refresh_token = $tokens['refresh_token'] ?? false;
 		if ( empty( $refresh_token ) ) {
 			return false;
 		}
 
 		// Update refresh token, and fetch new access token.
-		$tokens = $this->jwt->get_fresh_tokens( $refresh_token );
-		if ( ! is_wp_error( $tokens ) ) {
-			$this->set_tokens( $user_id, $tokens );
-
-			// Store the refresh token as-is, a JSON encoded string.
-			$this->set_refresh_token( $user_id, $tokens['refresh_token'] );
-			return $tokens['access_token'];
+		$new_tokens = $this->jwt->get_tokens( $refresh_token );
+		if ( ! is_wp_error( $new_tokens ) ) {
+			$this->set_tokens( $user_id, $new_tokens );
+			return $new_tokens['access_token'];
 		}
 
 		// Mostly likely the merchant changed environment.
 		// Delete the user meta to ensure a new refresh token is issued next time in the new environment, and to make the SIWK button appear again on the frontend.
-		delete_user_meta( $user_id, self::REFRESH_TOKEN_KEY );
+		unset( $tokens['refresh_token'] );
+		update_user_meta( $user_id, self::TOKENS_KEY, $tokens );
 		return false;
 	}
 
 	/**
 	 * Store the Klarna tokens retrieved from the "refresh token" request to the user's metadata.
 	 *
-	 * @param int    $user_id The Woo user ID.
-	 * @param array  $tokens Klarna tokens.
-	 * @param string $refresh_token The refresh token (optional).
+	 * @param int   $user_id The Woo user ID.
+	 * @param array $tokens Klarna tokens.
 	 * @return bool Whether the tokens were saved.
 	 */
-	public function set_tokens( $user_id, $tokens, $refresh_token = null ) {
-		$result = update_user_meta( $user_id, self::TOKENS_KEY, wp_json_encode( $tokens ) );
-		if ( ! empty( $refresh_token ) ) {
-			$result = $this->set_refresh_token( $user_id, $refresh_token );
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Store the access token as a transient associated with user ID.
-	 *
-	 * @param int    $user_id The Woo user ID.
-	 * @param string $refresh_token The refresh token.
-	 * @return bool Whether the refresh token were saved.
-	 */
-	public function set_refresh_token( $user_id, $refresh_token ) {
-		return update_user_meta( $user_id, self::TOKENS_KEY, $refresh_token );
+	public function set_tokens( $user_id, $tokens ) {
+		return update_user_meta( $user_id, self::TOKENS_KEY, $tokens );
 	}
 
 	/**
@@ -145,15 +120,14 @@ class User {
 	}
 
 	/**
-	 * Save tokens and refresh token to the user's metadata to an already logged in user.
+	 * Save tokens to the user's metadata to an already logged in user.
 	 *
-	 * @param int    $user_id The user ID.
-	 * @param array  $tokens The Klarna tokens.
-	 * @param string $refresh_token The refresh token.
+	 * @param int   $user_id The user ID.
+	 * @param array $tokens The Klarna tokens.
 	 * @return void
 	 */
-	public function sign_in_user( $user_id, $tokens, $refresh_token ) {
-		$this->set_tokens( $user_id, $tokens, $refresh_token );
+	public function sign_in_user( $user_id, $tokens ) {
+		$this->set_tokens( $user_id, $tokens );
 		$this->set_current_user( $user_id );
 	}
 
@@ -216,10 +190,9 @@ class User {
 	 * Extract the user data from the ID token.
 	 *
 	 * @param string $id_token The ID token.
-	 * @param string $refresh_token The refresh token.
 	 * @return array An userdata array to be consumed by wp_insert_user.
 	 */
-	public function get_user_data( $id_token, $refresh_token ) {
+	public function get_user_data( $id_token ) {
 		$id_token = wp_parse_args(
 			$id_token,
 			array(
@@ -251,27 +224,26 @@ class User {
 		);
 
 		$userdata['meta_input'] = array(
-			'billing_first_name'    => $userdata['first_name'],
-			'billing_last_name'     => $userdata['last_name'],
-			'billing_city'          => $billing_address['city'] ?? '',
-			'billing_state'         => $billing_address['region'] ?? '',
-			'billing_country'       => $billing_address['country'] ?? '',
-			'billing_postcode'      => $billing_address['postal_code'] ?? '',
-			'billing_address_1'     => $billing_address['street_address'] ?? '',
-			'billing_address_2'     => $billing_address['street_address_2'] ?? '',
-			'billing_phone'         => $id_token['phone'] ?? '',
-			'billing_email'         => $userdata['user_email'],
-			'shipping_first_name'   => $userdata['first_name'],
-			'shipping_last_name'    => $userdata['last_name'],
-			'shipping_city'         => $billing_address['city'] ?? '',
-			'shipping_country'      => $billing_address['country'] ?? '',
-			'shipping_state'        => $billing_address['region'] ?? '',
-			'shipping_postcode'     => $billing_address['postal_code'] ?? '',
-			'shipping_address_1'    => $billing_address['street_address'] ?? '',
-			'shipping_address_2'    => $billing_address['street_address_2'] ?? '',
-			'shipping_phone'        => $id_token['phone'] ?? '',
-			'shipping_email'        => $userdata['user_email'],
-			self::REFRESH_TOKEN_KEY => $refresh_token,
+			'billing_first_name'  => $userdata['first_name'],
+			'billing_last_name'   => $userdata['last_name'],
+			'billing_city'        => $billing_address['city'] ?? '',
+			'billing_state'       => $billing_address['region'] ?? '',
+			'billing_country'     => $billing_address['country'] ?? '',
+			'billing_postcode'    => $billing_address['postal_code'] ?? '',
+			'billing_address_1'   => $billing_address['street_address'] ?? '',
+			'billing_address_2'   => $billing_address['street_address_2'] ?? '',
+			'billing_phone'       => $id_token['phone'] ?? '',
+			'billing_email'       => $userdata['user_email'],
+			'shipping_first_name' => $userdata['first_name'],
+			'shipping_last_name'  => $userdata['last_name'],
+			'shipping_city'       => $billing_address['city'] ?? '',
+			'shipping_country'    => $billing_address['country'] ?? '',
+			'shipping_state'      => $billing_address['region'] ?? '',
+			'shipping_postcode'   => $billing_address['postal_code'] ?? '',
+			'shipping_address_1'  => $billing_address['street_address'] ?? '',
+			'shipping_address_2'  => $billing_address['street_address_2'] ?? '',
+			'shipping_phone'      => $id_token['phone'] ?? '',
+			'shipping_email'      => $userdata['user_email'],
 		);
 
 		// Remove empty fields (based on default value).

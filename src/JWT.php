@@ -132,7 +132,7 @@ class JWT {
 	 * @param string $refresh_token The Klarna refresh token.
 	 * @return array|\WP_Error A validated array of tokens or WP_Error if the no new tokens could be retrieved.
 	 */
-	public function get_fresh_tokens( $refresh_token ) {
+	public function get_tokens( $refresh_token ) {
 		// We need an existing refresh token to issue a new one.
 		if ( empty( $refresh_token ) ) {
 			return new \WP_Error( 'missing_refresh_token', 'No refresh token provided.' );
