@@ -181,7 +181,11 @@ class SignInWithKlarna {
 		$client_id   = esc_attr( apply_filters( 'siwk_client_id', $this->settings->get( 'client_id' ) ) );
 		$redirect_to = esc_attr( Redirect::get_callback_url() );
 
-		return "data-locale='{$locale}' data-scope='{$scope}' data-market='{$market}' data-environment='{$environment}' data-client-id='{$client_id}' data-redirect-uri='{$redirect_to}'";
+		$theme     = esc_attr( $this->settings->get( 'button_theme' ) );
+		$shape     = esc_attr( $this->settings->get( 'button_shape' ) );
+		$alignment = esc_attr( $this->settings->get( 'logo_alignment' ) );
+
+		return "data-locale='{$locale}' data-scope='{$scope}' data-market='{$market}' data-environment='{$environment}' data-client-id='{$client_id}' data-redirect-uri='{$redirect_to}' data-logo-alignment='{$alignment}' data-theme='{$theme}' data-shape='{$shape}'";
 	}
 
 	/**
