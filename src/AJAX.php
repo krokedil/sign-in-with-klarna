@@ -62,7 +62,7 @@ class AJAX {
 		}
 
 		$refresh_token = sanitize_text_field( wp_unslash( $refresh_token ) );
-		$tokens        = $this->jwt->get_fresh_tokens( $refresh_token );
+		$tokens        = $this->jwt->get_tokens( $refresh_token );
 		if ( is_wp_error( $tokens ) ) {
 			$error_message = $tokens->get_error_message();
 			if ( is_array( $error_message ) ) {

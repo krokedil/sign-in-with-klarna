@@ -72,7 +72,7 @@ class User {
 		}
 
 		// Update refresh token, and fetch new access token.
-		$tokens = $this->jwt->get_fresh_tokens( $refresh_token );
+		$tokens = $this->jwt->get_tokens( $refresh_token );
 		if ( ! is_wp_error( $tokens ) ) {
 			$this->set_tokens( $user_id, $tokens );
 
