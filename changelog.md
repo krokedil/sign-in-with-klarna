@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 * Fixed inconsistent serialization and deserialization of user metadata when storing and retrieving tokens, which caused the access token to be stored as an array instead of a string.
+* Apply button styling set in the settings to the "Sign in with Klarna" button.
+* Resolve console warnings caused by renamed style attribute values in the Klarna SDK.
 
 ------------------
 ## [1.0.0] - 2024-10-24
