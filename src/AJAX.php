@@ -73,7 +73,7 @@ class AJAX {
 		}
 
 		$id_token = $this->jwt->get_payload( $tokens['id_token'] );
-		$userdata = $this->user->get_user_data( $id_token, $refresh_token );
+		$userdata = $this->user->get_user_data( $id_token );
 
 		if ( username_exists( $userdata['user_login'] ) || email_exists( $userdata['user_email'] ) ) {
 			$user_id = $this->user->merge_with_existing_user( $userdata );
@@ -88,11 +88,11 @@ class AJAX {
 		$guest        = 0;
 		$current_user = get_current_user_id();
 		if ( $guest === $current_user ) {
-			$this->user->sign_in_user( $user_id, $tokens, $refresh_token );
+			$this->user->sign_in_user( $user_id, $tokens );
 		} else {
 			// The only condition for displaying the sign-in button is that the user does not have a refresh token.
 			// Therefore, it could be displayed for a signed-in user. If the user is already signed in, we only update the tokens.
-			$this->user->set_tokens( $user_id, $tokens, $refresh_token );
+			$this->user->set_tokens( $user_id, $tokens );
 		}
 
 		// phpcs:ignore -- Nonce is checked by calling function.

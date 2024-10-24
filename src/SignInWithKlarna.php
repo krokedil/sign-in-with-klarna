@@ -195,6 +195,7 @@ class SignInWithKlarna {
 		 * 1. if logged in or guest but has not signed in with klarna.
 		 * 2. signed in, but need to renew the refresh token.
 		 */
-		return empty( get_user_meta( get_current_user_id(), User::REFRESH_TOKEN_KEY, true ) );
+		$tokens = get_user_meta( get_current_user_id(), User::TOKENS_KEY, true );
+		return ! isset( $tokens['refresh_token'] );
 	}
 }
