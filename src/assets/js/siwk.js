@@ -15,7 +15,7 @@ if ( siwk_params !== undefined ) {
                     nonce: siwk_params.sign_in_from_popup_nonce,
                 },
                 success: ( data ) => {
-                    if (data.success) {
+                    if ( data.success ) {
                         const { redirect } = data.data
                         window.location = redirect
                     } else {
