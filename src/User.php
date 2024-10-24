@@ -53,10 +53,10 @@ class User {
 			return false;
 		}
 
-		// If the token is not valid or has expired, try to refresh it.
-		$access_token = $this->jwt->get_payload( $tokens['access_token'] );
-		if ( ! is_wp_error( $access_token ) && ( $tokens['expires_in'] - 30_000 ) > time() ) {
-			return $access_token;
+		// We do not have to "validate the access token before using it", but we must check if it has expired. We subtract 30 seconds as a buffer.
+		$has_expired = time() > ( $tokens['expires_in'] - 30_000 );
+		if ( ! $has_expired ) {
+			return $tokens['access_token'];
 		}
 
 		// Check if the user has refresh token.
