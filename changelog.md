@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+------------------
+## [1.0.1] - 2024-10-25
 ### Changed
 
 * Renamed `get_fresh_token` to `get_tokens`.
@@ -18,7 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Apply button styling set in the settings to the "Sign in with Klarna" button.
 * Resolve console warnings caused by renamed style attribute values in the Klarna SDK.
 
-------------------
 ## [1.0.0] - 2024-10-24
 ### Added
 
