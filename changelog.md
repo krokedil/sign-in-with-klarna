@@ -8,12 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ------------------
+## [1.0.2] - 2024-10-28
+### Fixed
+
+* Fixed not defaulting settings to proper values when they are not set yet.
+
 ## [1.0.1] - 2024-10-25
 ### Changed
 
 * Renamed `get_fresh_token` to `get_tokens`.
 * Now store all tokens to `_siwk_tokens` (previously, stored the refresh token separately in metadata).
-* Skipped access token validation and only check if it is expired. 
+* Skipped access token validation and only check if it is expired.
 
 ### Fixed
 
