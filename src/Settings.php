@@ -320,12 +320,12 @@ class Settings {
 
 		// The array keys match the name of the scopes they define.
 		$this->scope = array(
-			'profile:name'          => wc_string_to_bool( $settings['siwk_required_scopes_name'] ),
-			'profile:email'         => wc_string_to_bool( $settings['siwk_required_scopes_email'] ),
-			'profile:phone'         => wc_string_to_bool( $settings['siwk_required_scopes_phone'] ),
-			'profile:language'      => wc_string_to_bool( $settings['siwk_optional_scopes_language'] ),
-			'profile:country'       => wc_string_to_bool( $settings['siwk_optional_scopes_country'] ),
-			'profile:date_of_birth' => wc_string_to_bool( $settings['siwk_optional_scopes_date_of_birth'] ),
+			'profile:name'          => wc_string_to_bool( $settings['siwk_required_scopes_name'] ?? 'yes' ),
+			'profile:email'         => wc_string_to_bool( $settings['siwk_required_scopes_email'] ?? 'yes' ),
+			'profile:phone'         => wc_string_to_bool( $settings['siwk_required_scopes_phone'] ?? 'yes' ),
+			'profile:language'      => wc_string_to_bool( $settings['siwk_optional_scopes_language'] ?? 'no' ),
+			'profile:country'       => wc_string_to_bool( $settings['siwk_optional_scopes_country'] ?? 'no' ),
+			'profile:date_of_birth' => wc_string_to_bool( $settings['siwk_optional_scopes_date_of_birth'] ?? 'no' ),
 		);
 	}
 
