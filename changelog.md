@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ------------------
+## [1.0.3] - 2024-10-30
+### Fixed
+
+* Fixed the setting for enabling the Klarna login button not being used properly, causing the login button to show even when it was disabled.
+
 ## [1.0.2] - 2024-10-28
 ### Fixed
 
