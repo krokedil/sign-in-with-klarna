@@ -11,6 +11,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Settings {
 
 	/**
+	 * If the SIWK feature is enabled.
+	 *
+	 * @var string 'yes' or 'no'.
+	 */
+	private $enabled;
+
+	/**
 	 * The UUID you received after the Sign in with Klarna onboarding.
 	 *
 	 * @var string
@@ -308,11 +315,12 @@ class Settings {
 	private function update( $settings ) {
 		$default = $this->default();
 
+		$this->enabled        = $settings['siwk_enabled'] ?? $default['siwk_enabled'];
 		$this->test_mode      = $settings['testmode'] ?? $default['siwk_test_mode'];
-		$this->button_theme   = $settings['siwk_button_theme'];
-		$this->button_shape   = $settings['siwk_button_shape'];
-		$this->logo_alignment = $settings['siwk_logo_alignment'];
-		$this->cart_placement = $settings['siwk_cart_placement'];
+		$this->button_theme   = $settings['siwk_button_theme'] ?? $default['siwk_button_theme'];
+		$this->button_shape   = $settings['siwk_button_shape'] ?? $default['siwk_button_shape'];
+		$this->logo_alignment = $settings['siwk_logo_alignment'] ?? $default['siwk_logo_alignment'];
+		$this->cart_placement = $settings['siwk_cart_placement'] ?? $default['siwk_cart_placement'];
 		$this->market         = kp_get_klarna_country();
 		$this->client_id      = kp_get_client_id( $this->market );
 
