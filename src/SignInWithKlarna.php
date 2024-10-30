@@ -196,9 +196,15 @@ class SignInWithKlarna {
 	private function should_display() {
 		/**
 		 * Check if we need to display the SIWK button:
-		 * 1. if logged in or guest but has not signed in with klarna.
-		 * 2. signed in, but need to renew the refresh token.
+		 * 1. If SIWK is enabled.
+		 * 2. if logged in or guest but has not signed in with klarna.
+		 * 3. signed in, but need to renew the refresh token.
 		 */
+		$enabled = $this->settings->get( 'enabled' );
+		if ( ! wc_string_to_bool( $enabled ) ) {
+			return false;
+		}
+
 		$tokens = get_user_meta( get_current_user_id(), User::TOKENS_KEY, true );
 		return ! isset( $tokens['refresh_token'] );
 	}
