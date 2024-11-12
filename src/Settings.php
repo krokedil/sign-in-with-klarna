@@ -137,7 +137,7 @@ class Settings {
 			array(
 				'siwk'                                 => array(
 					'title'       => __( 'Sign in with Klarna', 'siwk' ),
-					'description' => __( 'An improved way to drive shoppers straight to the checkout, with all their preferences already set.', 'siwk' ),
+					'description' => __( 'Let customers connect their accounts with pre-set payments and preferences to shop anywhere, improve personalized shopping experiences.', 'siwk' ),
 					'links'       => array(
 						array(
 							'url'   => 'https://docs.klarna.com/conversion-boosters/sign-in-with-klarna/before-you-start/',
