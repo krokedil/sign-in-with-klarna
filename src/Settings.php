@@ -118,7 +118,7 @@ class Settings {
 		if ( 'scope' === $setting ) {
 			// These scopes are required for full functionality and shouldn't be modified by the merchant, and must be excluded from the filter.
 			$required = 'openid offline_access customer:login profile:name profile:email profile:phone profile:billing_address ';
-			return $required . apply_filters( "siwk_{$setting}", implode( ' ', array_keys( array_filter( $this->scope ) ) ) );
+			return trim( $required . apply_filters( "siwk_{$setting}", implode( ' ', array_keys( array_filter( $this->scope ) ) ) ) );
 		}
 
 		return apply_filters( "siwk_{$setting}", $this->{$setting} );
