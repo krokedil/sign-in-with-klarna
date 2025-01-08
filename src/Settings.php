@@ -117,8 +117,8 @@ class Settings {
 		$setting = str_replace( 'siwk_', '', $setting );
 		if ( 'scope' === $setting ) {
 			// These scopes are required for full functionality and shouldn't be modified by the merchant, and must be excluded from the filter.
-			$required = 'openid offline_access customer:login profile:name profile:email profile:phone profile:billing_address';
-			return $required . apply_filters( "siwk_{$setting}", implode( ' ', array_keys( array_filter( $this->scope ) ) ) );
+			$required = 'openid offline_access customer:login profile:name profile:email profile:phone profile:billing_address ';
+			return trim( $required . apply_filters( "siwk_{$setting}", implode( ' ', array_keys( array_filter( $this->scope ) ) ) ) );
 		}
 
 		return apply_filters( "siwk_{$setting}", $this->{$setting} );
@@ -331,7 +331,7 @@ class Settings {
 			'profile:name'          => wc_string_to_bool( $settings['siwk_required_scopes_name'] ?? 'yes' ),
 			'profile:email'         => wc_string_to_bool( $settings['siwk_required_scopes_email'] ?? 'yes' ),
 			'profile:phone'         => wc_string_to_bool( $settings['siwk_required_scopes_phone'] ?? 'yes' ),
-			'profile:language'      => wc_string_to_bool( $settings['siwk_optional_scopes_language'] ?? 'no' ),
+			'profile:locale'        => wc_string_to_bool( $settings['siwk_optional_scopes_language'] ?? 'no' ),
 			'profile:country'       => wc_string_to_bool( $settings['siwk_optional_scopes_country'] ?? 'no' ),
 			'profile:date_of_birth' => wc_string_to_bool( $settings['siwk_optional_scopes_date_of_birth'] ?? 'no' ),
 		);
