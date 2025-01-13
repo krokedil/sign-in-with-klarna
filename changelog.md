@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ------------------
+## [1.0.5] - 2025-01-13
+### Fixed
+* Fixed faulty formatting for scope and removed invalid scope.
+
 ## [1.0.4] - 2024-11-12
 ### Changed
 * Updated the product description as shown on the settings page.
