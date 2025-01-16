@@ -200,6 +200,12 @@ class SignInWithKlarna {
 		 * 2. if logged in or guest but has not signed in with klarna.
 		 * 3. signed in, but need to renew the refresh token.
 		 */
+
+		$kp_unavailable_feature_ids = get_option( 'kp_unavailable_feature_ids', array() );
+		if ( in_array( 'siwk', $kp_unavailable_feature_ids ) ) {
+			return false;
+		}
+
 		$enabled = $this->settings->get( 'enabled' );
 		if ( ! wc_string_to_bool( $enabled ) ) {
 			return false;
