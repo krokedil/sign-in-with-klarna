@@ -208,7 +208,7 @@ class User {
 			'user_email'  => sanitize_email( $id_token['email'] ),
 			'first_name'  => sanitize_text_field( $id_token['given_name'] ),
 			'last_name'   => sanitize_text_field( $id_token['family_name'] ),
-			'description' => __( 'Sign in with Klarna', 'siwk' ),
+			'description' => __( 'Sign in with Klarna', 'klarna-payments-for-woocommerce' ),
 			'locale'      => $id_token['locale'],
 		);
 
