@@ -105,15 +105,7 @@ class Settings {
 			$this->default(),
 		);
 		$this->settings = $settings;
-
 		add_action( 'init', array( $this, 'init_settings' ), 10, 0 );
-
-		if ( isset( $settings['siwk_callback_url'] ) && empty( $settings['siwk_callback_url'] ) ) {
-			$settings['siwk_callback_url'] = Redirect::get_callback_url();
-			update_option( 'woocommerce_klarna_payments_settings', $settings );
-		}
-
-		add_filter( 'wc_gateway_klarna_payments_settings', array( $this, 'extend_settings' ) );
 	}
 
 	/**
@@ -123,6 +115,13 @@ class Settings {
 	 */
 	public function init_settings() {
 		$this->update( $this->settings );
+
+		if ( isset( $this->settings['siwk_callback_url'] ) && empty( $this->settings['siwk_callback_url'] ) ) {
+			$this->settings['siwk_callback_url'] = Redirect::get_callback_url();
+			update_option( 'woocommerce_klarna_payments_settings', $this->settings );
+		}
+
+		add_filter( 'wc_gateway_klarna_payments_settings', array( $this, 'extend_settings' ) );
 	}
 
 	/**
