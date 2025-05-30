@@ -62,23 +62,30 @@ class SignInWithKlarna {
 	 */
 	public function __construct( $settings ) {
 		$this->settings = new Settings( $settings );
-		$this->jwt      = new JWT( wc_string_to_bool( $this->settings->get( 'test_mode' ) ), $this->settings );
-		$this->user     = new User( $this->jwt );
-		$this->ajax     = new AJAX( $this->jwt, $this->user );
 
+		add_action( 'init', array( $this, 'init' ) );
+	}
+
+	/**
+	 * Initialize the SignInWithKlarna class.
+	 *
+	 * @return void
+	 */
+	public function init() {
+		$this->jwt  = new JWT( wc_string_to_bool( $this->settings->get( 'test_mode' ) ), $this->settings );
+		$this->user = new User( $this->jwt );
+		$this->ajax = new AJAX( $this->jwt, $this->user );
 		// Initialize the callback endpoint for handling the redirect flow.
 		new Redirect( $this->settings );
 
 		if ( $this->should_display() ) {
 			// Frontend hooks.
-			add_action( 'woocommerce_proceed_to_checkout', array( $this, self::$placement_hook ), intval( $this->settings->get( 'cart_placement' ) ) );
+			add_action( 'woocommerce_proceed_to_checkout', array( $this, self::$placement_hook ), \intval( $this->settings->get( 'cart_placement' ) ) );
 			add_action( 'woocommerce_login_form_start', array( $this, self::$placement_hook ) );
 			add_action( 'woocommerce_widget_shopping_cart_buttons', array( $this, 'siwk_output_button' ), 5 );
-
 			// Enqueue library and SDK.
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		}
-
 		// Enqueue settings page styles and scripts.
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 	}
@@ -129,7 +136,6 @@ class SignInWithKlarna {
 		$script_path = plugin_dir_url( __FILE__ ) . 'assets/js/admin-siwk.js';
 		wp_enqueue_script( 'siwk_admin_script', $script_path, array( 'jquery' ), SIWK_VERSION, false );
 	}
-
 
 	/**
 	 * Add extra attributes to the Klarna script tag.
