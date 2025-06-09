@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'SIWK_VERSION' ) ) {
-	define( 'SIWK_VERSION', '1.0.5' );
+	define( 'SIWK_VERSION', '1.0.6' );
 }
 
 /**
