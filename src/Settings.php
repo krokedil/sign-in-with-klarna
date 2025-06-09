@@ -88,20 +88,37 @@ class Settings {
 	private $scope;
 
 	/**
+	 * The SIWK settings.
+	 *
+	 * @var array
+	 */
+	protected $settings;
+
+	/**
 	 * Class constructor
 	 *
 	 * @param array $settings The settings to extract from.
 	 */
 	public function __construct( $settings ) {
-		$settings = wp_parse_args(
+		$settings       = wp_parse_args(
 			$settings,
 			$this->default(),
 		);
-		$this->update( $settings );
+		$this->settings = $settings;
+		add_action( 'init', array( $this, 'init_settings' ), 10, 0 );
+	}
 
-		if ( isset( $settings['siwk_callback_url'] ) && empty( $settings['siwk_callback_url'] ) ) {
-			$settings['siwk_callback_url'] = Redirect::get_callback_url();
-			update_option( 'woocommerce_klarna_payments_settings', $settings );
+	/**
+	 * Initialize the settings.
+	 *
+	 * @return void
+	 */
+	public function init_settings() {
+		$this->update( $this->settings );
+
+		if ( isset( $this->settings['siwk_callback_url'] ) && empty( $this->settings['siwk_callback_url'] ) ) {
+			$this->settings['siwk_callback_url'] = Redirect::get_callback_url();
+			update_option( 'woocommerce_klarna_payments_settings', $this->settings );
 		}
 
 		add_filter( 'wc_gateway_klarna_payments_settings', array( $this, 'extend_settings' ) );

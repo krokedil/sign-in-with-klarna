@@ -2,7 +2,7 @@
     "name": "krokedil/sign-in-with-klarna",
     "description": "Add \"Sign in with Klarna\" compatibility with your WooCommerce plugin.",
     "type": "library",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "require": {
         "firebase/php-jwt": "^6.0.0"
     },
