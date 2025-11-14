@@ -1,9 +1,7 @@
 <?php //phpcs:ignore -- PCR-4 compliant.
 namespace Krokedil\SignInWithKlarna;
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Handles the callback from the redirect flow.
