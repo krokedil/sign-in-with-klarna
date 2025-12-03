@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ------------------
+## [2.0.0] - 2025-12-03
+### Changed
+
+* Migrated to use the Klarna V2 WebSDK.
+
 ## [1.0.6] - 2025-06-09
 ### Fixed
 

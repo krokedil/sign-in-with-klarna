@@ -1,12 +1,15 @@
 <?php //phpcs:ignore -- PCR-4 compliant.
 namespace Krokedil\SignInWithKlarna;
 
+use Krokedil\Klarna\Features;
+use Krokedil\Klarna\PluginFeatures;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 if ( ! defined( 'SIWK_VERSION' ) ) {
-	define( 'SIWK_VERSION', '1.0.6' );
+	define( 'SIWK_VERSION', '2.0.0' );
 }
 
 /**
@@ -63,7 +66,7 @@ class SignInWithKlarna {
 	public function __construct( $settings ) {
 		$this->settings = new Settings( $settings );
 
-		add_action( 'init', array( $this, 'init' ) );
+		add_action( 'kp_plugin_features_initialized', array( $this, 'init' ) );
 	}
 
 	/**
@@ -72,6 +75,11 @@ class SignInWithKlarna {
 	 * @return void
 	 */
 	public function init() {
+		// If the feature for SIWK is not available, do not proceed.
+		if ( ! PluginFeatures::is_available( Features::SIWK ) ) {
+			return;
+		}
+
 		$this->jwt  = new JWT( wc_string_to_bool( $this->settings->get( 'test_mode' ) ), $this->settings );
 		$this->user = new User( $this->jwt );
 		$this->ajax = new AJAX( $this->jwt, $this->user );
@@ -100,18 +108,19 @@ class SignInWithKlarna {
 	public function enqueue_scripts() {
 		// 'siwk_script' MUST BE registered before Klarna's lib.js
 		$script_path = plugin_dir_url( __FILE__ ) . 'assets/js/siwk.js';
-		wp_register_script( 'siwk_script', $script_path, array( 'jquery' ), SIWK_VERSION, false );
 		$siwk_params = array(
+			'locale' 				   => $this->settings->get( 'locale' ),
+			'scope'                    => $this->settings->get( 'scope' ),
+			'theme' 				   => $this->settings->get( 'button_theme' ),
+			'shape'                    => $this->settings->get( 'button_shape' ),
+			'alignment'                => $this->settings->get( 'logo_alignment' ),
+			'redirect_uri'             => Redirect::get_callback_url(),
 			'sign_in_from_popup_url'   => \WC_AJAX::get_endpoint( 'siwk_sign_in_from_popup' ),
 			'sign_in_from_popup_nonce' => wp_create_nonce( 'siwk_sign_in_from_popup' ),
 
 		);
-		wp_localize_script( 'siwk_script', 'siwk_params', $siwk_params );
-		wp_enqueue_script( 'siwk_script' );
-		wp_enqueue_script( self::$library_handle, 'https://js.klarna.com/web-sdk/v1/klarna.js', array( 'siwk_script' ), SIWK_VERSION, true );
-
-		// Add data- attributes to the script tag.
-		add_action( 'script_loader_tag', array( $this, 'siwk_script_tag' ), 10, 2 );
+		wp_register_script_module( '@klarna/siwk', $script_path, array( '@klarna/interoperability_token' ), SIWK_VERSION );
+		\KP_Assets::register_module_data( $siwk_params, '@klarna/siwk' );
 	}
 
 	/**
@@ -138,22 +147,6 @@ class SignInWithKlarna {
 	}
 
 	/**
-	 * Add extra attributes to the Klarna script tag.
-	 *
-	 * @param string $tag The <script> tag attributes for the enqueued script.
-	 * @param string $handle The script's registered handle.
-	 * @return string
-	 */
-	public function siwk_script_tag( $tag, $handle ) {
-		if ( self::$library_handle !== $handle ) {
-			return $tag;
-		}
-
-		$attributes = $this->get_attributes();
-		return str_replace( ' src', " defer {$attributes}' src", $tag );
-	}
-
-	/**
 	 * Output the "Sign in with Klarna" button HTML.
 	 *
 	 * @param string $style The CSS style to apply to the button.
@@ -164,22 +157,19 @@ class SignInWithKlarna {
 		if ( did_action( self::$placement_hook ) ) {
 			return;
 		}
-
 		$style      = 'width: 100%; max-width: 100%;' . ( ! empty( $style ) ? " {$style}" : '' );
-		$attributes = $this->get_attributes() . " style='" . esc_attr( $style ) . "'";
-
-		$attributes = apply_filters( 'siwk_button_attributes', $attributes );
-
-		// phpcs:ignore -- must be echoed as html; attributes already escaped.
-		echo "<klarna-identity-button id='klarna-identity-button' class='siwk-button' $attributes></klarna-identity-button>";
+		wp_enqueue_script_module( '@klarna/siwk' );
+		echo "<div id='klarna-identity-button' class='siwk-button' style='{$style}'></div>";
 	}
 
 	/**
 	 * Get the attributes for the Sign in with Klarna button.
 	 *
-	 * @return string
+	 * @param array $attributes The current attributes.
+	 *
+	 * @return array
 	 */
-	private function get_attributes() {
+	public function add_websdk_attributes() {
 		$locale      = esc_attr( $this->settings->get( 'locale' ) );
 		$scope       = esc_attr( $this->settings->get( 'scope' ) );
 		$market      = esc_attr( apply_filters( 'siwk_market', $this->settings->get( 'market' ) ) );
@@ -191,7 +181,19 @@ class SignInWithKlarna {
 		$shape     = esc_attr( $this->settings->get( 'button_shape' ) );
 		$alignment = esc_attr( $this->settings->get( 'logo_alignment' ) );
 
-		return "data-locale='{$locale}' data-scope='{$scope}' data-market='{$market}' data-environment='{$environment}' data-client-id='{$client_id}' data-redirect-uri='{$redirect_to}' data-logo-alignment='{$alignment}' data-theme='{$theme}' data-shape='{$shape}'";
+		$attributes = array(
+			'data-locale'         => $locale,
+			'data-scope'          => $scope,
+			'data-market'         => $market,
+			'data-environment'    => $environment,
+			'data-client-id'      => $client_id,
+			'data-redirect-uri'   => $redirect_to,
+			'data-logo-alignment' => $alignment,
+			'data-theme'          => $theme,
+			'data-shape'          => $shape,
+		);
+
+		return $attributes;
 	}
 
 	/**
