@@ -79,7 +79,7 @@ class SignInWithKlarna {
 		if ( ! PluginFeatures::is_available( Features::SIWK ) ) {
 			return;
 		}
-
+		$this->settings->init_settings();
 		$this->jwt  = new JWT( wc_string_to_bool( $this->settings->get( 'test_mode' ) ), $this->settings );
 		$this->user = new User( $this->jwt );
 		$this->ajax = new AJAX( $this->jwt, $this->user );
@@ -109,9 +109,9 @@ class SignInWithKlarna {
 		// 'siwk_script' MUST BE registered before Klarna's lib.js
 		$script_path = plugin_dir_url( __FILE__ ) . 'assets/js/siwk.js';
 		$siwk_params = array(
-			'locale' 				   => $this->settings->get( 'locale' ),
+			'locale'                   => $this->settings->get( 'locale' ),
 			'scope'                    => $this->settings->get( 'scope' ),
-			'theme' 				   => $this->settings->get( 'button_theme' ),
+			'theme'                    => $this->settings->get( 'button_theme' ),
 			'shape'                    => $this->settings->get( 'button_shape' ),
 			'alignment'                => $this->settings->get( 'logo_alignment' ),
 			'redirect_uri'             => Redirect::get_callback_url(),
@@ -157,7 +157,7 @@ class SignInWithKlarna {
 		if ( did_action( self::$placement_hook ) ) {
 			return;
 		}
-		$style      = 'width: 100%; max-width: 100%;' . ( ! empty( $style ) ? " {$style}" : '' );
+		$style = 'width: 100%; max-width: 100%;' . ( ! empty( $style ) ? " {$style}" : '' );
 		wp_enqueue_script_module( '@klarna/siwk' );
 		echo "<div id='klarna-identity-button' class='siwk-button' style='{$style}'></div>";
 	}
