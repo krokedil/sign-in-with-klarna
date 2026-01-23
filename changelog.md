@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ------------------
+## [2.0.1] - 2026-01-23
+### Fixed
+
+* Resolved issue with SIWK visibility caused by settings not being initialized when needed, which prevented proper checking if SIWK is enabled.
+
 ## [2.0.0] - 2025-12-03
 ### Changed
 
