@@ -66,7 +66,7 @@ class SignInWithKlarna {
 	public function __construct( $settings ) {
 		$this->settings = new Settings( $settings );
 
-		add_action( 'kp_plugin_features_initialized', array( $this, 'init' ) );
+		add_action( 'init', array( $this, 'init' ) );
 	}
 
 	/**
