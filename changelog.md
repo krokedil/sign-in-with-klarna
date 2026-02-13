@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Fixed
 
+* Resolved an issue where SIWK did not function correctly when using the popup authentication flow.
 * Resolved notice "_load_textdomain_just_in_time was called incorrectly".
 
 ------------------
