@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+
+* Resolved an issue where SIWK did not function correctly when using the popup authentication flow.
+* Resolved notice "_load_textdomain_just_in_time was called incorrectly".
 
 ------------------
 ## [2.0.1] - 2026-01-23

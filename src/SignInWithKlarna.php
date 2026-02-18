@@ -66,7 +66,7 @@ class SignInWithKlarna {
 	public function __construct( $settings ) {
 		$this->settings = new Settings( $settings );
 
-		add_action( 'kp_plugin_features_initialized', array( $this, 'init' ) );
+		add_action( 'init', array( $this, 'init' ) );
 	}
 
 	/**
@@ -75,6 +75,10 @@ class SignInWithKlarna {
 	 * @return void
 	 */
 	public function init() {
+		if ( ! class_exists( PluginFeatures::class ) || ! class_exists( Features::class ) ) {
+			return;
+		}
+
 		// If the feature for SIWK is not available, do not proceed.
 		if ( ! PluginFeatures::is_available( Features::SIWK ) ) {
 			return;
