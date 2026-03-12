@@ -22,9 +22,7 @@ const siwk = {
             locale: siwk.params.locale,
             theme: siwk.params.theme,
             shape: siwk.params.shape,
-            alignment: siwk.params.alignment,
-            initiationMode: 'REDIRECT',
-            interactionMode: 'REDIRECT',
+            alignment: siwk.params.alignment
         });
 
         // Only mount and register the events if the buttonWrapper exists.
