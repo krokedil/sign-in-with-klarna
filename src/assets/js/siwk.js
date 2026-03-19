@@ -23,8 +23,6 @@ const siwk = {
             theme: siwk.params.theme,
             shape: siwk.params.shape,
             alignment: siwk.params.alignment,
-            initiationMode: 'REDIRECT',
-            interactionMode: 'REDIRECT',
         });
 
         // Only mount and register the events if the buttonWrapper exists.
@@ -39,17 +37,14 @@ const siwk = {
     },
 
     onSignin: async function (response) {
-        const { user_account_linking } = response
-        const { user_account_linking_id_token: id_token, user_account_linking_refresh_token: refresh_token } =
-            user_account_linking
+        const { idToken } = response
 
         jQuery.ajax({
             type: "POST",
             url: siwk.params.sign_in_from_popup_url,
             data: {
                 url: window.location.href,
-                id_token,
-                refresh_token,
+                id_token: idToken,
                 nonce: siwk.params.sign_in_from_popup_nonce,
             },
             success: (data) => {
