@@ -63,6 +63,11 @@ class AJAX {
 
 		$id_token = sanitize_text_field( wp_unslash( $id_token ) );
 		$payload  = $this->jwt->get_payload( $id_token );
+
+		if ( is_wp_error( $payload ) ) {
+			wp_send_json_error( $payload->get_error_message() );
+		}
+
 		$userdata = $this->user->get_user_data( $payload );
 
 		if ( username_exists( $userdata['user_login'] ) || email_exists( $userdata['user_email'] ) ) {
