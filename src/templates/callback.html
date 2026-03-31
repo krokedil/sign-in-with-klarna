@@ -12,13 +12,11 @@
           const { user_account_linking } = response;
           const {
             user_account_linking_id_token: id_token,
-            user_account_linking_refresh_token: refresh_token,
           } = user_account_linking;
 
           // admin-ajax.php doesn't support JSON request. We need to use FormData.
           const formData = new FormData();
           formData.append("id_token", id_token);
-          formData.append("refresh_token", refresh_token);
 
           fetch("%sign_in_url%", {
             method: "POST",

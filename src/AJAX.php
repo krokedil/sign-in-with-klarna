@@ -85,7 +85,7 @@ class AJAX {
 		if ( $guest === $current_user ) {
 			$this->user->sign_in_user( $user_id, array( 'id_token' => $id_token ) );
 		} else {
-			// The only condition for displaying the sign-in button is that the user does not have a refresh token.
+			// The only condition for displaying the sign-in button is that the user does not have an access token.
 			// Therefore, it could be displayed for a signed-in user. If the user is already signed in, we only update the tokens.
 			$this->user->set_tokens( $user_id, array( 'id_token' => $id_token ) );
 		}

@@ -210,7 +210,7 @@ class SignInWithKlarna {
 		 * Check if we need to display the SIWK button:
 		 * 1. If SIWK is enabled.
 		 * 2. if logged in or guest but has not signed in with klarna.
-		 * 3. signed in, but need to renew the refresh token.
+		 * 3. signed in, but need to renew the access token.
 		 */
 
 		$kp_unavailable_feature_ids = get_option( 'kp_unavailable_feature_ids', array() );
@@ -224,6 +224,6 @@ class SignInWithKlarna {
 		}
 
 		$tokens = get_user_meta( get_current_user_id(), User::TOKENS_KEY, true );
-		return ! isset( $tokens['refresh_token'] );
+		return ! isset( $tokens['access_token'] );
 	}
 }
