@@ -82,12 +82,16 @@ class AJAX {
 
 		$guest        = 0;
 		$current_user = get_current_user_id();
+		$tokens       = array(
+			'id_token' => $id_token,
+		);
+
 		if ( $guest === $current_user ) {
-			$this->user->sign_in_user( $user_id, array( 'id_token' => $id_token ) );
+			$this->user->sign_in_user( $user_id, $tokens );
 		} else {
 			// The only condition for displaying the sign-in button is that the user does not have an access token.
 			// Therefore, it could be displayed for a signed-in user. If the user is already signed in, we only update the tokens.
-			$this->user->set_tokens( $user_id, array( 'id_token' => $id_token ) );
+			$this->user->set_tokens( $user_id, $tokens );
 		}
 
 		// phpcs:ignore -- Nonce is checked by calling function.
