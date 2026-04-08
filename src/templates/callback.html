@@ -9,14 +9,11 @@
     <script type="text/javascript">
       window.KlarnaSDKCallback = function (klarna) {
         klarna.Identity.on("signin", async (response) => {
-          const { user_account_linking } = response;
-          const {
-            user_account_linking_id_token: id_token,
-          } = user_account_linking;
+          const { idToken } = response
 
           // admin-ajax.php doesn't support JSON request. We need to use FormData.
           const formData = new FormData();
-          formData.append("id_token", id_token);
+          formData.append("id_token", idToken);
 
           fetch("%sign_in_url%", {
             method: "POST",
