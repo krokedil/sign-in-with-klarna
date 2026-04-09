@@ -55,32 +55,15 @@ class User {
 
 		// We do not have to "validate the access token before using it", but we must check if it has expired. We subtract 30 seconds as a buffer.
 		$has_expired = time() > ( $tokens['expires_in'] - 30_000 );
-		if ( ! $has_expired ) {
-			return $tokens['access_token'];
-		}
-
-		// Check if the user has refresh token.
-		$refresh_token = $tokens['refresh_token'] ?? false;
-		if ( empty( $refresh_token ) ) {
+		if ( $has_expired ) {
 			return false;
 		}
 
-		// Update refresh token, and fetch new access token.
-		$new_tokens = $this->jwt->get_tokens( $refresh_token );
-		if ( ! is_wp_error( $new_tokens ) ) {
-			$this->set_tokens( $user_id, $new_tokens );
-			return $new_tokens['access_token'];
-		}
-
-		// Mostly likely the merchant changed environment.
-		// Delete the user meta to ensure a new refresh token is issued next time in the new environment, and to make the SIWK button appear again on the frontend.
-		unset( $tokens['refresh_token'] );
-		update_user_meta( $user_id, self::TOKENS_KEY, $tokens );
-		return false;
+		return $tokens['access_token'];
 	}
 
 	/**
-	 * Store the Klarna tokens retrieved from the "refresh token" request to the user's metadata.
+	 * Store the Klarna tokens in the user's metadata.
 	 *
 	 * @param int   $user_id The Woo user ID.
 	 * @param array $tokens Klarna tokens.
