@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'SIWK_VERSION' ) ) {
-	define( 'SIWK_VERSION', '2.0.2' );
+	define( 'SIWK_VERSION', '2.0.3' );
 }
 
 /**
@@ -210,7 +210,7 @@ class SignInWithKlarna {
 		 * Check if we need to display the SIWK button:
 		 * 1. If SIWK is enabled.
 		 * 2. if logged in or guest but has not signed in with klarna.
-		 * 3. signed in, but need to renew the refresh token.
+		 * 3. Signed in, but has not completed SIWK authentication for this account.
 		 */
 
 		$kp_unavailable_feature_ids = get_option( 'kp_unavailable_feature_ids', array() );
@@ -224,6 +224,6 @@ class SignInWithKlarna {
 		}
 
 		$tokens = get_user_meta( get_current_user_id(), User::TOKENS_KEY, true );
-		return ! isset( $tokens['refresh_token'] );
+		return ! isset( $tokens['id_token'] );
 	}
 }

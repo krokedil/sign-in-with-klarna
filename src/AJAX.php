@@ -56,24 +56,19 @@ class AJAX {
 	 */
 	private function handle_sign_in() {
 		// phpcs:ignore -- Nonce is checked by calling function.
-		$refresh_token = wc_get_var( $_POST['refresh_token'] );
-		if ( empty( $refresh_token ) ) {
+		$id_token = wc_get_var( $_POST['id_token'] );
+		if ( empty( $id_token ) ) {
 			wp_send_json_error( 'missing parameters' );
 		}
 
-		$refresh_token = sanitize_text_field( wp_unslash( $refresh_token ) );
-		$tokens        = $this->jwt->get_tokens( $refresh_token );
-		if ( is_wp_error( $tokens ) ) {
-			$error_message = $tokens->get_error_message();
-			if ( is_array( $error_message ) ) {
-				$error_message = implode( $error_message );
-			}
+		$id_token = sanitize_text_field( wp_unslash( $id_token ) );
+		$payload  = $this->jwt->get_payload( $id_token );
 
-			wp_send_json_error( 'could not retrieve tokens: ' . $error_message );
+		if ( is_wp_error( $payload ) ) {
+			wp_send_json_error( $payload->get_error_message() );
 		}
 
-		$id_token = $this->jwt->get_payload( $tokens['id_token'] );
-		$userdata = $this->user->get_user_data( $id_token );
+		$userdata = $this->user->get_user_data( $payload );
 
 		if ( username_exists( $userdata['user_login'] ) || email_exists( $userdata['user_email'] ) ) {
 			$user_id = $this->user->merge_with_existing_user( $userdata );
@@ -87,10 +82,14 @@ class AJAX {
 
 		$guest        = 0;
 		$current_user = get_current_user_id();
+		$tokens       = array(
+			'id_token' => $id_token,
+		);
+
 		if ( $guest === $current_user ) {
 			$this->user->sign_in_user( $user_id, $tokens );
 		} else {
-			// The only condition for displaying the sign-in button is that the user does not have a refresh token.
+			// The only condition for displaying the sign-in button is that the user does not have an id token.
 			// Therefore, it could be displayed for a signed-in user. If the user is already signed in, we only update the tokens.
 			$this->user->set_tokens( $user_id, $tokens );
 		}
