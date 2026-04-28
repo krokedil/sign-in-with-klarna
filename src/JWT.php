@@ -1,8 +1,6 @@
 <?php //phpcs:ignore -- PCR-4 compliant.
 namespace Krokedil\SignInWithKlarna;
 
-use Firebase\JWT\JWT as FirebaseJWT;
-use Firebase\JWT\JWK as FirebaseJWK;
 use KP_Form_Fields;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -21,13 +19,6 @@ class JWT {
 	private $base_url;
 
 	/**
-	 * Klarna JWKS URL.
-	 *
-	 * @var string
-	 */
-	private $jwks_url;
-
-	/**
 	 * The internal settings state.
 	 *
 	 * @var Settings
@@ -40,13 +31,6 @@ class JWT {
 	 * @var string `eu` or `na`.
 	 */
 	public $region;
-
-	/**
-	 * JWKS
-	 *
-	 * @var array
-	 */
-	private $jwks;
 
 	/**
 	 * Class constructor.
@@ -66,8 +50,6 @@ class JWT {
 
 			$this->region = strtolower( apply_filters( 'klarna_base_region', $endpoint ) );
 		}
-
-		$this->jwks_url = "{$this->base_url}/{$this->region}/lp/idp/.well-known/jwks.json";
 	}
 
 	/**
@@ -80,49 +62,20 @@ class JWT {
 	}
 
 	/**
-	 * Validate a JWT token.
-	 *
-	 * @param string $jwt_token The JWT token.
-	 * @return array|false The validated JWT token as an array or FALSE if invalid.
-	 */
-	private function is_valid_jwt( $jwt_token ) {
-		if ( empty( $this->jwks ) ) {
-			$response = wp_remote_get(
-				$this->jwks_url,
-				array(
-					'headers' => array(
-						'Accept' => 'application/json',
-					),
-				)
-			);
-
-			if ( is_wp_error( $response ) ) {
-				return false;
-			}
-
-			$this->jwks = json_decode( wp_remote_retrieve_body( $response ), true );
-		}
-
-		try {
-
-			// An exception is thrown if the token is invalid. Convert the stdClass to associative array.
-			return json_decode( wp_json_encode( FirebaseJWT::decode( $jwt_token, FirebaseJWK::parseKeySet( $this->jwks ) ) ), true );
-		} catch ( \Exception $e ) {
-
-			// Set to false to ensure new keys are retrieved next time this function is called.
-			$this->jwks = false;
-			return false;
-		}
-	}
-
-	/**
 	 * Validate and extract the payload only if the JWT token is valid.
 	 *
 	 * @param string $jwt_token The JWT token.
 	 * @return array|\WP_Error A validated JSON decoded JWT token array or WP_Error if invalid.
 	 */
 	public function get_payload( $jwt_token ) {
-		$jwt_token = $this->is_valid_jwt( $jwt_token );
-		return empty( $jwt_token ) ? new \WP_Error( 'JWT token invalid.' ) : $jwt_token;
+		$parts = explode( '.', $jwt_token );
+
+		if ( \count( $parts ) !== 3 ) {
+			return new \WP_Error( 'JWT token invalid.' );
+		}
+
+		$payload = json_decode( base64_decode( $parts[1] ), true );
+
+		return empty( $payload ) ? new \WP_Error( 'JWT token invalid.' ) : $payload;
 	}
 }

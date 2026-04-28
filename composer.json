@@ -3,9 +3,7 @@
     "description": "Add \"Sign in with Klarna\" compatibility with your WooCommerce plugin.",
     "type": "library",
     "version": "2.0.3",
-    "require": {
-        "firebase/php-jwt": "^6.0.0"
-    },
+    "require": {},
     "require-dev": {
         "wp-coding-standards/wpcs": "^3.0",
         "php-stubs/wordpress-stubs": "^6.0",
