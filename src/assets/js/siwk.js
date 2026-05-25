@@ -16,6 +16,19 @@ const siwk = {
     buttonWrapper: "#klarna-identity-button",
 
     mount: function () {
+        // Dedupe duplicate #klarna-identity-button divs across placements.
+        // The mini-cart (header) renders before the page-body placements (login form,
+        // proceed-to-checkout). When both fire on /my-account/, /cart/, or /checkout/,
+        // multiple divs share the same id and the SDK mounts onto the first match —
+        // typically the off-canvas mini-cart, leaving the dedicated div empty.
+        // Strip IDs from all but the last occurrence so the page-body placement wins.
+        const allButtons = document.querySelectorAll('#klarna-identity-button');
+        if (allButtons.length > 1) {
+            for (let i = 0; i < allButtons.length - 1; i++) {
+                allButtons[i].removeAttribute('id');
+            }
+        }
+
         siwk.button = siwk.Klarna.Identity.button({
             scope: siwk.params.scope,
             redirectUri: siwk.params.redirect_uri,
