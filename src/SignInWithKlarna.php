@@ -157,13 +157,24 @@ class SignInWithKlarna {
 	 * @return void
 	 */
 	public function siwk_output_button( $style = '' ) {
-		// Only run this function ONCE PER ACTION to prevent duplicate buttons. First time it is run, did_action will return 0. A non-zero value means it has already been run.
+		// The mini-cart in the header renders before page-body placements (login form,
+		// proceed-to-checkout). On pages that have their own dedicated placement, let
+		// that one win — otherwise the mini-cart claims the only render and the
+		// duplicate #klarna-identity-button in the off-canvas mini-cart is what the
+		// Klarna SDK mounts into, leaving the page-body div empty.
+		if ( doing_action( 'woocommerce_widget_shopping_cart_buttons' ) && ( is_account_page() || is_cart() || is_checkout() ) ) {
+			return;
+		}
+
+		// Only run this function ONCE PER REQUEST to prevent duplicate buttons. First time it is run, did_action will return 0. A non-zero value means it has already been run.
 		if ( did_action( self::$placement_hook ) ) {
 			return;
 		}
+		do_action( self::$placement_hook );
+
 		$style = 'width: 100%; max-width: 100%;' . ( ! empty( $style ) ? " {$style}" : '' );
 		wp_enqueue_script_module( '@klarna/siwk' );
-		echo "<div id='klarna-identity-button' class='siwk-button' style='{$style}'></div>";
+		echo "<div id='klarna-identity-button' class='siwk-button' style='" . esc_attr( $style ) . "'></div>";
 	}
 
 	/**
