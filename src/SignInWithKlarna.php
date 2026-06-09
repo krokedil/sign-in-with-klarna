@@ -156,17 +156,6 @@ class SignInWithKlarna {
 	 * @param string $style The CSS style to apply to the button.
 	 * @return void
 	 */
-	/**
-	 * Output the "Sign in with Klarna" button HTML.
-	 *
-	 * Duplicate-ID dedup across placements (mini-cart vs login form vs proceed-to-checkout)
-	 * is handled client-side in siwk.js, since server-side page detection is unreliable
-	 * inside the mini-cart widget context. The static guard here only prevents the same
-	 * placement hook from rendering twice within a single request, as a hygiene fallback.
-	 *
-	 * @param string $style The CSS style to apply to the button.
-	 * @return void
-	 */
 	public function siwk_output_button( $style = '' ) {
 		$style = 'width: 100%; max-width: 100%;' . ( ! empty( $style ) ? " {$style}" : '' );
 		wp_enqueue_script_module( '@klarna/siwk' );

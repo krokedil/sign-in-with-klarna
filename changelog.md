@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+
+* Resolved an issue where the Sign in with Klarna button could be incorrectly placed in the minicart on the "My account" page.
 
 ------------------
 ## [2.0.3] - 2026-04-21
