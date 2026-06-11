@@ -1,5 +1,5 @@
 const $ = jQuery;
-const { network_session } = await import("@klarna/klarna_network_session_token");
+const { klarna_interoperability } = await import("@klarna/network_session_token");
 let configData = {};
 const params = document.getElementById(
     'wp-script-module-data-@klarna/siwk'
@@ -67,7 +67,7 @@ const siwk = {
 
     init: async function (e) {
         siwk.params = configData;
-        siwk.Klarna = network_session.Klarna;
+        siwk.Klarna = klarna_interoperability.Klarna;
 
         siwk.mount();
     }

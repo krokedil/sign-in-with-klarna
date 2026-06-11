@@ -123,7 +123,7 @@ class SignInWithKlarna {
 			'sign_in_from_popup_nonce' => wp_create_nonce( 'siwk_sign_in_from_popup' ),
 
 		);
-		wp_register_script_module( '@klarna/siwk', $script_path, array( '@klarna/klarna_network_session_token' ), SIWK_VERSION );
+		wp_register_script_module( '@klarna/siwk', $script_path, array( '@klarna/network_session_token' ), SIWK_VERSION );
 		\KP_Assets::register_module_data( $siwk_params, '@klarna/siwk' );
 	}
 
