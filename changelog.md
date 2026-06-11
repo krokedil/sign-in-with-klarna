@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
+
 * Updated to use the Klarna network session token instead of an interoperability token.
 
 ------------------
