@@ -157,13 +157,9 @@ class SignInWithKlarna {
 	 * @return void
 	 */
 	public function siwk_output_button( $style = '' ) {
-		// Only run this function ONCE PER ACTION to prevent duplicate buttons. First time it is run, did_action will return 0. A non-zero value means it has already been run.
-		if ( did_action( self::$placement_hook ) ) {
-			return;
-		}
 		$style = 'width: 100%; max-width: 100%;' . ( ! empty( $style ) ? " {$style}" : '' );
 		wp_enqueue_script_module( '@klarna/siwk' );
-		echo "<div id='klarna-identity-button' class='siwk-button' style='{$style}'></div>";
+		echo "<div id='klarna-identity-button' class='siwk-button' style='" . esc_attr( $style ) . "'></div>";
 	}
 
 	/**
